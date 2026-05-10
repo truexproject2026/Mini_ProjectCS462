@@ -4,7 +4,7 @@ from PIL import Image, ImageOps, ImageFilter
 import pickle
 import joblib
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, confusion_matrix
 import json
 import random
@@ -142,12 +142,12 @@ def train():
     # 1. การแบ่งข้อมูล
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # 2. การสร้างโมเดล (ExtraTreesClassifier มักจะแม่นยำกว่า RF ในงานจำแนกภาพ)
-    # ใช้ n_estimators=500 เพื่อให้ขนาดไฟล์บีบอัดแล้วไม่เกิน 100MB
-    model = ExtraTreesClassifier(
-        n_estimators=500, 
-        max_depth=None,
-        min_samples_split=2,
+    # 2. การสร้างโมเดล (ใช้ RandomForest แบบ Slim เพื่อประหยัด RAM บน Render.com 512MB limit)
+    # จำกัดต้นไม้ 200 ต้น, ความลึกไม่เกิน 20, และบังคับมีข้อมูลที่ใบ 4 จุดขึ้นไป
+    model = RandomForestClassifier(
+        n_estimators=200, 
+        max_depth=20,
+        min_samples_leaf=4,
         class_weight='balanced',
         random_state=42,
         n_jobs=-1
