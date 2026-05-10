@@ -35,6 +35,10 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error("Supabase Upload Error:", error);
+        return NextResponse.json({ 
+          status: 'error', 
+          message: `Cloud Save Failed: ${error.message} (Check if bucket 'datasets' exists)` 
+        }, { status: 500 });
       } else {
         return NextResponse.json({ 
           status: 'success', 
