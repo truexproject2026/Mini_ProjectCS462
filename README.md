@@ -1,6 +1,6 @@
-# ✍️ Thai Handwriting Recognition ML System (๓๖ - ๔๐)
+# ✍️ ระบบทำนายลายมือตัวเลขไทย (๓๖ - ๔๐) ด้วย Machine Learning
 
-A professional, full-stack Machine Learning application for recognizing and collecting Thai handwritten digits (36-40). Built with a modern hybrid-cloud architecture featuring Next.js, FastAPI, and Random Forest.
+โปรเจค Full-stack Machine Learning สำหรับจำแนกและเก็บรวบรวมลายมือตัวเลขไทย (๓๖-๔๐) พัฒนาด้วยสถาปัตยกรรม Hybrid-cloud ที่ทันสมัยโดยใช้ Next.js, FastAPI และโมเดล Random Forest
 
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://mini-pj-online.vercel.app/)
 [![Backend](https://img.shields.io/badge/backend-FastAPI-blue)](https://mini-projectcs462.onrender.com/docs)
@@ -8,50 +8,50 @@ A professional, full-stack Machine Learning application for recognizing and coll
 
 ---
 
-## 🌟 Key Features
+## 🌟 คุณสมบัติเด่น (Key Features)
 
-- **🎯 Intelligent Prediction:** Real-time Thai digit recognition using a Random Forest classifier.
-- **📁 Dataset Collection:** Integrated canvas for drawing and saving new samples directly to **Cloudinary** for persistent storage.
-- **🧠 Dynamic Model Loading:** Admin interface to upload and swap ML models (`.pkl`) in real-time without server restarts.
-- **📱 Responsive Design:** Fully optimized for desktop and mobile tablets with touch support.
-- **⚡ Hybrid Architecture:** Decoupled Frontend (Vercel) and Backend (Render) for optimal performance and scalability.
+- **🎯 ระบบทำนายผลอัจฉริยะ:** ทำนายลายมือตัวเลขไทยแบบ Real-time ด้วยโมเดล Random Forest ที่มีความแม่นยำสูง
+- **📁 ระบบเก็บข้อมูล Dataset:** มี Canvas สำหรับวาดและบันทึกตัวอย่างลายมือใหม่ลงสู่ **Cloudinary** โดยตรง เพื่อสะสมข้อมูลสำหรับการเทรนในอนาคต
+- **🧠 อัปเดตโมเดลแบบ Real-time:** หน้าจอ Admin สำหรับอัปโหลดไฟล์โมเดล (`.pkl`) และเปลี่ยน "สมอง" ของ AI ได้ทันทีโดยไม่ต้องรีสตาร์ทเซิร์ฟเวอร์
+- **📱 รองรับทุกอุปกรณ์:** ออกแบบมาให้ใช้งานได้ดีทั้งบนคอมพิวเตอร์ แท็บเล็ต และมือถือ (รองรับระบบสัมผัส)
+- **⚡ สถาปัตยกรรม Hybrid:** แยกส่วน Frontend (Vercel) และ Backend (Render) เพื่อประสิทธิภาพและความเสถียรสูงสุด
 
 ---
 
-## 🏗️ Technology Stack
+## 🏗️ เทคโนโลยีที่ใช้ (Tech Stack)
 
-| Layer | Technology |
+| ส่วนงาน | เทคโนโลยี |
 | :--- | :--- |
 | **Frontend** | [Next.js 15](https://nextjs.org/) (React, TypeScript, Tailwind CSS) |
 | **AI Backend** | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12+) |
-| **Machine Learning** | Scikit-learn, NumPy, PIL |
-| **Image Storage** | [Cloudinary](https://cloudinary.com/) (Persistent Cloud Storage) |
+| **Machine Learning** | Scikit-learn, NumPy, PIL (Pillow) |
+| **Cloud Storage** | [Cloudinary](https://cloudinary.com/) (เก็บรูปภาพ Dataset ถาวร) |
 | **Deployment** | Vercel (Frontend) & Render.com (Backend) |
 
 ---
 
-## 🚀 System Architecture
+## 🚀 แผนผังการทำงาน (System Architecture)
 
 ```mermaid
 graph LR
-    User((User)) -->|Draws Digit| Vercel[Next.js Frontend - Vercel]
-    Vercel -->|Predict Request| Render[FastAPI Backend - Render]
-    Render -->|Random Forest| Result[Prediction + Confidence]
-    Vercel -->|Save Sample| Cloudinary[Cloudinary Storage]
-    Admin[Admin] -->|Upload .pkl| Render
-    Render -->|Reload Memory| Memory[(Model In-Memory)]
+    User((ผู้ใช้งาน)) -->|วาดตัวเลข| Vercel[Next.js Frontend - Vercel]
+    Vercel -->|ส่งคำขอทำนาย| Render[FastAPI Backend - Render]
+    Render -->|รันโมเดล| Result[ผลทำนาย + ค่าความเชื่อมั่น]
+    Vercel -->|บันทึกตัวอย่าง| Cloudinary[Cloudinary Storage]
+    Admin[ผู้ดูแลระบบ] -->|อัปโหลด .pkl| Render
+    Render -->|โหลดเข้า Memory| Memory[(Model ตัวใหม่)]
 ```
 
 ---
 
-## 🛠️ Local Development
+## 🛠️ การติดตั้งเพื่อพัฒนาต่อ (Local Development)
 
-### 1. Prerequisites
-- Node.js 18+
-- Python 3.9+
-- Cloudinary Account (for data collection)
+### 1. สิ่งที่ต้องเตรียม
+- Node.js 18 ขึ้นไป
+- Python 3.9 ขึ้นไป
+- บัญชี Cloudinary (สำหรับระบบเก็บข้อมูล)
 
-### 2. Backend Setup
+### 2. ตั้งค่า Backend (Python)
 ```powershell
 cd backend
 python -m venv .venv
@@ -60,48 +60,48 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 3. Frontend Setup
+### 3. ตั้งค่า Frontend (Next.js)
 ```powershell
 npm install
 npm run dev
 ```
-Configure `.env.local`:
+สร้างไฟล์ `.env.local` และกำหนดค่าดังนี้:
 ```text
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
-CLOUDINARY_CLOUD_NAME=your_name
-CLOUDINARY_API_KEY=your_key
-CLOUDINARY_API_SECRET=your_secret
+CLOUDINARY_CLOUD_NAME=ชื่อ_cloud_ของคุณ
+CLOUDINARY_API_KEY=api_key_ของคุณ
+CLOUDINARY_API_SECRET=api_secret_ของคุณ
 ```
 
 ---
 
-## 📂 Project Structure
+## 📂 โครงสร้างโปรเจค
 
-- `backend/`: FastAPI implementation & AI Logic.
-- `src/app/`: Next.js App Router (Pages & API Proxy).
-- `src/components/`: Reusable React components (Drawing Canvas).
-- `models/`: Pre-trained models (`.pkl`) and metrics.
-- `dataset/`: (Local) Image samples for training.
-
----
-
-## 🧪 Machine Learning Details
-
-1. **Preprocessing:** 
-   - Grayscale conversion
-   - Centering & Bounding Box cropping
-   - Resize to 28x28 pixels
-   - Binary Thresholding (Standardizing stroke clarity)
-2. **Model:** Random Forest Classifier (100 estimators).
-3. **Accuracy:** ~90% (based on current dataset).
+- `backend/`: ส่วนการทำงานของ FastAPI และ Logic ของ AI
+- `src/app/`: โครงสร้างหน้าเว็บ Next.js (App Router) และ API Proxy
+- `src/components/`: คอมโพเนนต์ React (Canvas สำหรับวาดรูป)
+- `models/`: ที่เก็บไฟล์โมเดล (.pkl) และค่าสถิติต่างๆ
+- `dataset/`: โฟลเดอร์เก็บรูปภาพตัวอย่างสำหรับใช้เทรน (Local)
 
 ---
 
-## 📄 Documentation
+## 🧪 รายละเอียด Machine Learning
 
-- [Deployment Guide (Thai)](./DEPLOYMENT_GUIDE_TH.txt) - Step-by-step cloud setup.
-- [Project Memory (AI Info)](./GEMINI.md) - Internal technical details.
+1. **Preprocessing (การเตรียมภาพ):** 
+   - แปลงเป็นภาพขาวดำ (Grayscale)
+   - การหาขอบเขตและจัดกึ่งกลางตัวเลข (Centering & Bounding Box)
+   - ปรับขนาดเป็น 28x28 พิกเซล
+   - Binary Thresholding เพื่อทำให้เส้นวาดชัดเจนที่สุด
+2. **Model:** ใช้ Random Forest Classifier (100 estimators)
+3. **Accuracy:** ประมาณ 90% (ขึ้นอยู่กับจำนวน Dataset ปัจจุบัน)
 
 ---
-**CS462 Machine Learning Assignment**  
-*Developed with ❤️ and AI Assistance*
+
+## 📄 เอกสารเพิ่มเติม
+
+- [คู่มือการติดตั้งออนไลน์ (ฉบับเต็ม)](./DEPLOYMENT_GUIDE_TH.txt)
+- [หน่วยความจำโปรเจค (สำหรับ AI)](./GEMINI.md)
+
+---
+**โปรเจควิชา CS462 Machine Learning Assignment**  
+*พัฒนาโดยการสนับสนุนจาก AI Assistant (Gemini CLI)*
