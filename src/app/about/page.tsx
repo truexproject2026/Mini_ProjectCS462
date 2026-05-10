@@ -43,7 +43,7 @@ export default function AboutPage() {
           <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '300px', height: '300px', background: 'rgba(79, 70, 229, 0.1)', borderRadius: '50%', filter: 'blur(60px)' }}></div>
           <div style={{ position: 'absolute', bottom: '-50px', left: '-50px', width: '200px', height: '200px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '50%', filter: 'blur(50px)' }}></div>
 
-          <div style={{ position: 'relative', z-index: 2 }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
             <div style={{ 
               display: 'inline-block', 
               background: 'rgba(99, 102, 241, 0.15)', 
