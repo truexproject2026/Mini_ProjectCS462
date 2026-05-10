@@ -1,58 +1,57 @@
 =====================================================
-คู่มือการนำระบบขึ้น Cloud (Vercel & Render & Google Drive)
+คู่มือการติดตั้งระบบออนไลน์ (Vercel + Render + Cloudinary)
 =====================================================
 
-โปรเจคนี้ได้รับการปรับปรุงให้รองรับการทำงานบน Cloud โดยแบ่งหน้าที่ดังนี้:
+โปรเจคนี้ใช้โครงสร้างแบบ Hybrid Cloud เพื่อรองรับ Machine Learning:
 1. Frontend (Next.js) -> ฝากที่ Vercel
 2. Backend (FastAPI) -> ฝากที่ Render.com
-3. Dataset Storage   -> ฝากที่ Google Drive
+3. Dataset Storage   -> ฝากที่ Cloudinary (เก็บรูปถาวร)
 
 -----------------------------------------------------
-ขั้นตอนที่ 1: ตั้งค่า Supabase Storage (สำหรับเก็บรูป)
+ขั้นตอนที่ 1: ตั้งค่า Cloudinary (สำหรับเก็บรูป Dataset)
 -----------------------------------------------------
-1. เข้าไปที่ https://supabase.com/ และสมัครสมาชิก
-2. สร้าง Project ใหม่ (ตั้งชื่อ เช่น thai-handwriting)
-3. เมื่อสร้างเสร็จ ไปที่แถบ "Storage" (ไอคอนรูปถัง) ในแถบด้านซ้าย
-4. กด "Create a new bucket" ตั้งชื่อว่า `datasets`
-5. **สำคัญ**: ติ๊กถูกที่ช่อง "Public bucket" เพื่อให้เข้าถึงรูปได้ง่าย
-6. ไปที่แถบ "Project Settings" (ไอคอนรูปฟันเฟืองด้านล่างสุด) > เลือก "API"
-7. ก๊อปปี้ค่าต่อไปนี้ไปใช้:
-   - Project URL (คือค่า SUPABASE_URL)
-   - anon public (คือค่า SUPABASE_ANON_KEY)
+1. สมัครสมาชิกที่ https://cloudinary.com/
+2. ในหน้า Dashboard ก๊อปปี้ค่าดังนี้:
+   - Cloud Name
+   - API Key
+   - API Secret (กดปุ่มรูปดวงตาเพื่อดู)
+3. ค่าเหล่านี้จะถูกใช้เป็น Environment Variables ใน Vercel
 
 -----------------------------------------------------
-ขั้นตอนที่ 2: ตั้งค่า Environment Variables (.env)
------------------------------------------------------
-นำค่าที่ได้ไปใส่ใน Vercel Dashboard (Settings > Environment Variables) และไฟล์ .env.local:
-
-1. SUPABASE_URL = (ค่า Project URL ที่ได้จากข้อ 7)
-2. SUPABASE_ANON_KEY = (ค่า anon public ที่ได้จากข้อ 7)
-3. BACKEND_URL = (URL ของ Backend บน Render เช่น https://thai-handwriting-api.onrender.com)
-
------------------------------------------------------
-ขั้นตอนที่ 3: การ Deploy Backend ไปที่ Render.com
+ขั้นตอนที่ 2: ตั้งค่า Backend ไปที่ Render.com
 -----------------------------------------------------
 1. สมัครสมาชิก Render.com และเชื่อมต่อ GitHub
-2. กด "New" > "Web Service"
-3. เลือก Repository ของคุณ
-4. ตั้งชื่อ Service และตั้งค่าดังนี้:
-   - Root Directory: backend
-   - Runtime: Python
-   - Build Command: pip install -r requirements.txt
-   - Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
-5. กด Deploy และรอจนเสร็จ คุณจะได้ URL ของ Backend มา
+2. กด "New" > "Web Service" เลือก Repository ของคุณ
+3. ตั้งค่าดังนี้:
+   - Name: (ตามต้องการ เช่น thai-handwriting-api)
+   - Runtime: Python 3
+   - Root Directory: thai-handwriting-next
+   - Build Command: pip install -r backend/requirements.txt
+   - Start Command: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+4. กด Deploy และก๊อปปี้ URL ของ Backend มา (เช่น https://...onrender.com)
 
 -----------------------------------------------------
-ขั้นตอนที่ 4: การ Deploy Frontend ไปที่ Vercel
+ขั้นตอนที่ 3: ตั้งค่า Frontend ไปที่ Vercel
 -----------------------------------------------------
-1. สมัครสมาชิก Vercel และเชื่อมต่อ GitHub
-2. กด "Add New" > "Project"
-3. เลือก Repository ของคุณ
-4. ใส่ Environment Variables ที่เตรียมไว้ในขั้นตอนที่ 2
-5. กด Deploy
+1. เข้า Vercel และเลือก "Add New" > "Project" ดึงมาจาก GitHub
+2. ในหน้าตั้งค่า ให้ใส่ Environment Variables ดังนี้:
+   - BACKEND_URL = (URL จาก Render ในข้อ 4)
+   - NEXT_PUBLIC_BACKEND_URL = (URL จาก Render เหมือนข้างบน)
+   - CLOUDINARY_CLOUD_NAME = (ค่าจากขั้นตอนที่ 1)
+   - CLOUDINARY_API_KEY = (ค่าจากขั้นตอนที่ 1)
+   - CLOUDINARY_API_SECRET = (ค่าจากขั้นตอนที่ 1)
+3. ตั้งค่า Output Directory เป็น: .next (ใน Settings > General)
+4. กด Deploy
+
+-----------------------------------------------------
+ขั้นตอนที่ 4: การอัปเดตโมเดลแบบ Real-time
+-----------------------------------------------------
+- คุณสามารถอัปเดตโมเดลได้ทันทีผ่านหน้า Admin ในเว็บออนไลน์
+- เลือกไฟล์ .pkl แล้วกด "Upload & Update"
+- ระบบจะส่งไฟล์ตรงไปที่ Render และโหลดเข้าหน่วยความจำทันที
+- หมายเหตุ: การอัปโหลดผ่านเว็บเป็นค่าชั่วคราว หากต้องการเปลี่ยนถาวรต้อง Commit ลง GitHub
 
 =====================================================
-หมายเหตุ:
-- การอัปโหลดโมเดลผ่านหน้า Admin บน Render (Free Tier) จะหายไปเมื่อเซิร์ฟเวอร์ Sleep หรือรีสตาร์ท แนะนำให้เทรนในเครื่องแล้ว Commit ไฟล์ current_model.pkl ขึ้น Git ไปด้วยเพื่อความถาวร
-- ข้อมูล Dataset จะถูกเก็บไว้ใน Google Drive อย่างปลอดภัยและถาวร
+สร้างโดย: AI Assistant (Gemini CLI)
+สถานะปัจจุบัน: ออนไลน์สมบูรณ์ (Predict + Collect + Real-time Update)
 =====================================================
