@@ -33,8 +33,10 @@ export default function CollectData() {
 
       if (result.status === 'success') {
         setSaveStatus({ type: 'success', msg: `บันทึกข้อมูล ${selectedLabel} สำเร็จ!` });
-        // เคลียร์ Canvas หลังจากเซฟสำเร็จ (ต้องเรียกผ่าน ref หรือวิธีที่ Canvas รองรับ)
-        // ในที่นี้เราจะให้ user กด Clear เอง หรือปรับ DrawingCanvas ให้มี prop clearTrigger
+        // เคลียร์ Canvas หลังจากเซฟสำเร็จ
+        if ((window as any).clearCanvas) {
+          (window as any).clearCanvas();
+        }
       } else {
         setSaveStatus({ type: 'error', msg: "บันทึกล้มเหลว: " + result.message });
       }
@@ -42,6 +44,12 @@ export default function CollectData() {
       setSaveStatus({ type: 'error', msg: "เกิดข้อผิดพลาดในการเชื่อมต่อ" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const clearCanvas = () => {
+    if ((window as any).clearCanvas) {
+      (window as any).clearCanvas();
     }
   };
 
@@ -88,9 +96,15 @@ export default function CollectData() {
               <button 
                 onClick={handleSave}
                 disabled={loading}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-[2] bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Save size={24} /> {loading ? "กำลังบันทึก..." : `บันทึกตัวเลข ${selectedLabel}`}
+              </button>
+              <button 
+                onClick={clearCanvas}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-6 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <Trash2 size={24} /> ล้าง
               </button>
             </div>
 
