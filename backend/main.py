@@ -43,7 +43,6 @@ def load_model():
     global model
     try:
         if os.path.exists(MODEL_PATH):
-            # ใช้ joblib โหลดโมเดลบีบอัด
             model = joblib.load(MODEL_PATH)
             print(f"--- Loaded Model (Joblib): {MODEL_PATH} ---")
             return True
@@ -59,23 +58,32 @@ load_model()
 # 2. ฟังก์ชันปรับแต่งภาพ (Preprocessing)
 # ---------------------------------------------------------
 def preprocess_image(image):
+    # 1. แปลงเป็น Grayscale
     img = image.convert('L')
+    
+    # 2. Centering: หาขอบเขตตัวเลขและวางกึ่งกลาง
     img_array = np.array(img)
     inverted_img = 255 - img_array
-    coords = np.column_stack(np.where(inverted_img > 40)) # ใช้ Threshold 40 ให้ตรงกับโค้ดเทรน
+    coords = np.column_stack(np.where(inverted_img > 40)) 
+    
     if coords.size > 0:
         y_min, x_min = coords.min(axis=0)
         y_max, x_max = coords.max(axis=0)
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
+        
         w, h = digit.size
-        size = max(w, h) + 4
+        # เพิ่มขอบเป็น 10 พิกเซล (V2) เพื่อให้หางเลข ๓๘, ๓๙ ไม่โดนตัด
+        size = max(w, h) + 10
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         img = new_img.resize((28, 28), Image.Resampling.LANCZOS)
     else:
         img = img.resize((28, 28))
-    fn = lambda x : 255 if x > 180 else 0
+
+    # 3. Binary Thresholding: ทำให้เป็นขาวดำสนิท (V2 ปรับเข้มขึ้นเป็น 190)
+    fn = lambda x : 255 if x > 190 else 0
     img = img.point(fn, mode='L')
+    
     return img
 
 class ImageInput(BaseModel):

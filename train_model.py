@@ -30,7 +30,7 @@ def preprocess_image(image):
     # 2. Centering: หาขอบเขตตัวเลขและวางกึ่งกลาง
     img_array = np.array(img)
     inverted_img = 255 - img_array
-    coords = np.column_stack(np.where(inverted_img > 40)) # เพิ่ม Threshold หาตัวเลขให้ชัดขึ้น
+    coords = np.column_stack(np.where(inverted_img > 40)) 
     
     if coords.size > 0:
         y_min, x_min = coords.min(axis=0)
@@ -38,16 +38,16 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        # สร้างพื้นหลังขาวใหม่และวางตัวเลขไว้ตรงกลาง
-        size = max(w, h) + 4
+        # เพิ่มขอบเป็น 10 พิกเซล เพื่อให้หางเลข ๓๘, ๓๙ ไม่โดนตัด
+        size = max(w, h) + 10
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         img = new_img.resize(IMG_SIZE, Image.Resampling.LANCZOS)
     else:
         img = img.resize(IMG_SIZE)
 
-    # 3. Binary Thresholding: ทำให้เป็นขาวดำสนิท
-    fn = lambda x : 255 if x > 180 else 0
+    # 3. Binary Thresholding: ทำให้เป็นขาวดำสนิท (ปรับเข้มขึ้นเป็น 190)
+    fn = lambda x : 255 if x > 190 else 0
     img = img.point(fn, mode='L')
     
     return img
@@ -84,32 +84,32 @@ def load_dataset():
                     clean_img = preprocess_image(raw_img)
                     
                     # ปรับ Augmentation ตามความยากและจำนวนข้อมูล
-                    # ๓๘ และ ๓๙ มักจะเขียนคล้ายกัน จึงต้องปั๊มให้ AI จำแม่นขึ้น
                     if label in ["๓๘", "๓๙", "๔๐"]:
-                        aug_count = 25 # ปั๊มรูปเพิ่ม 25 เท่าสำหรับเลขที่ยังมีปัญหา
+                        aug_count = 25 
                     else:
-                        aug_count = 12 # 12 เท่าสำหรับเลขที่แม่นอยู่แล้ว
+                        aug_count = 12 
                     
                     variants = []
-                    variants.append(clean_img) # ต้นฉบับ
+                    variants.append(clean_img) 
                     
                     for _ in range(aug_count - 1):
                         v = clean_img
                         choice = random.choice(['rotate', 'shift', 'both', 'zoom'])
                         
                         if choice in ['rotate', 'both']:
-                            angle = random.uniform(-15, 15)
+                            # เลข 38/39 ไม่ควรหมุนเยอะเกินไปเดี๋ยวหางเพี้ยน
+                            angle = random.uniform(-10, 10)
                             v = v.rotate(angle, fillcolor=255)
                         
                         if choice in ['shift', 'both']:
-                            tx = random.randint(-3, 3)
-                            ty = random.randint(-3, 3)
+                            tx = random.randint(-2, 2)
+                            ty = random.randint(-2, 2)
                             shifted = Image.new('L', IMG_SIZE, 255)
                             shifted.paste(v, (tx, ty))
                             v = shifted
 
                         if choice == 'zoom':
-                            zoom_factor = random.uniform(0.8, 1.1)
+                            zoom_factor = random.uniform(0.9, 1.1)
                             w, h = v.size
                             new_w, new_h = int(w * zoom_factor), int(h * zoom_factor)
                             v_resized = v.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -142,12 +142,12 @@ def train():
     # 1. การแบ่งข้อมูล
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # 2. การสร้างโมเดล (ใช้ RandomForest แบบ Slim เพื่อประหยัด RAM บน Render.com 512MB limit)
-    # จำกัดต้นไม้ 200 ต้น, ความลึกไม่เกิน 20, และบังคับมีข้อมูลที่ใบ 4 จุดขึ้นไป
+    # 2. การสร้างโมเดล (ปรับจูนให้ฉลาดขึ้น แต่ยังคุม RAM)
+    # เพิ่ม n_estimators เป็น 300 และ max_depth เป็น 35
     model = RandomForestClassifier(
-        n_estimators=200, 
-        max_depth=20,
-        min_samples_leaf=4,
+        n_estimators=300, 
+        max_depth=35,
+        min_samples_leaf=2,
         class_weight='balanced',
         random_state=42,
         n_jobs=-1
@@ -176,7 +176,7 @@ def train():
 
     print(f"Final Accuracy: {acc:.4f} | F1: {f1:.4f}")
 
-    # 6. บันทึกผล (ใช้ Joblib บีบอัดเพื่อให้ผ่าน GitHub Limit)
+    # 6. บันทึกผล
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     joblib.dump(model, MODEL_PATH, compress=9)
     
