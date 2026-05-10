@@ -35,7 +35,7 @@ yarn-error.log*
 google-credentials.json
 
 # Models
-models/metrics.json
+# models/metrics.json (นำออกเพื่อให้ Metrics โชว์ออนไลน์ได้)
 
 # vercel
 .vercel

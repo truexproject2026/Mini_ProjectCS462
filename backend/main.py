@@ -25,10 +25,20 @@ app.add_middleware(
 )
 
 # ---------------------------------------------------------
-# 1. การโหลดโมเดล
+# 1. การจัดการ Path และโมเดล
 # ---------------------------------------------------------
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "current_model.pkl")
-METRICS_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "metrics.json")
+# หา Path ของโปรเจคให้ชัวร์ที่สุด
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(CURRENT_DIR) if os.path.basename(CURRENT_DIR) == 'backend' else CURRENT_DIR
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+
+# สร้างโฟลเดอร์ models ถ้าไม่มี
+if not os.path.exists(MODELS_DIR):
+    os.makedirs(MODELS_DIR)
+
+MODEL_PATH = os.path.join(MODELS_DIR, "current_model.pkl")
+METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")
+
 model = None
 
 def load_model():
@@ -37,11 +47,12 @@ def load_model():
         if os.path.exists(MODEL_PATH):
             with open(MODEL_PATH, 'rb') as f:
                 model = pickle.load(f)
-            print(f"--- โมเดลถูกโหลดแล้วจาก: {MODEL_PATH} ---")
+            print(f"--- Loaded Model: {MODEL_PATH} ---")
             return True
+        print(f"--- Model not found at: {MODEL_PATH} ---")
         return False
     except Exception as e:
-        print(f"--- โหลดโมเดลไม่สำเร็จ: {e} ---")
+        print(f"--- Load Error: {e} ---")
         return False
 
 load_model()
@@ -54,12 +65,10 @@ def preprocess_image(image):
     img_array = np.array(img)
     inverted_img = 255 - img_array
     coords = np.column_stack(np.where(inverted_img > 30))
-    
     if coords.size > 0:
         y_min, x_min = coords.min(axis=0)
         y_max, x_max = coords.max(axis=0)
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
-        
         w, h = digit.size
         size = max(w, h) + 4
         new_img = Image.new('L', (size, size), 255)
@@ -67,7 +76,6 @@ def preprocess_image(image):
         img = new_img.resize((28, 28), Image.Resampling.LANCZOS)
     else:
         img = img.resize((28, 28))
-
     fn = lambda x : 255 if x > 180 else 0
     img = img.point(fn, mode='L')
     return img
@@ -79,7 +87,6 @@ class ImageInput(BaseModel):
 async def predict(input_data: ImageInput):
     if model is None:
         return {"prediction": "ไม่พบโมเดล", "confidence": 0.0}
-
     try:
         header, encoded = input_data.image_data.split(",", 1)
         image_bytes = base64.b64decode(encoded)
@@ -89,12 +96,7 @@ async def predict(input_data: ImageInput):
         img_array = 1.0 - img_array
         img_array = img_array.reshape(1, -1)
         prediction = model.predict(img_array)[0]
-        
-        confidence = 0.0
-        if hasattr(model, 'predict_proba'):
-            probs = model.predict_proba(img_array)
-            confidence = float(np.max(probs))
-
+        confidence = float(np.max(model.predict_proba(img_array))) if hasattr(model, 'predict_proba') else 0.0
         return {"prediction": str(prediction), "confidence": confidence}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -102,50 +104,30 @@ async def predict(input_data: ImageInput):
 @app.post("/upload-model")
 async def upload_model(file: UploadFile = File(...), metrics_file: Optional[UploadFile] = File(None)):
     try:
-        # 1. จัดการไฟล์โมเดล (.pkl)
-        if not file.filename.endswith('.pkl'):
-            raise HTTPException(status_code=400, detail="ต้องเป็นไฟล์ .pkl เท่านั้น")
-            
+        # เซฟโมเดล
         with open(MODEL_PATH, "wb") as f:
             content = await file.read()
             f.write(content)
-            
-        # 2. จัดการไฟล์ Metrics (.json) ถ้ามีการส่งมา
+        
+        # เซฟสถิติ (ถ้ามี)
         if metrics_file:
-            if not metrics_file.filename.endswith('.json'):
-                print("--- คำเตือน: ไฟล์ Metrics ไม่ใช่ .json ข้ามการบันทึก ---")
-            else:
-                with open(METRICS_PATH, "wb") as f:
-                    metrics_content = await metrics_file.read()
-                    f.write(metrics_content)
-                print(f"--- บันทึก Metrics ใหม่แล้ว: {metrics_file.filename} ---")
-            
-        # 3. โหลดโมเดลใหม่เข้า Memory
+            content = await metrics_file.read()
+            with open(METRICS_PATH, "wb") as f:
+                f.write(content)
+        
         if load_model():
-            return {"status": "success", "filename": file.filename, "has_metrics": metrics_file is not None}
-        else:
-            return {"status": "error", "message": "โหลดโมเดลใหม่ไม่สำเร็จ"}
+            return {"status": "success", "has_metrics": metrics_file is not None}
+        return {"status": "error", "message": "โหลดโมเดลใหม่ล้มเหลว"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/metrics")
 async def get_metrics():
-    try:
-        if os.path.exists(METRICS_PATH):
-            with open(METRICS_PATH, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return {"status": "success", "metrics": data}
-        return {"status": "error", "message": "Metrics file not found"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-@app.post("/reload-model")
-async def reload_model():
-    if load_model():
-        return {"status": "success"}
-    raise HTTPException(status_code=500, detail="Failed to reload")
+    if os.path.exists(METRICS_PATH):
+        with open(METRICS_PATH, 'r', encoding='utf-8') as f:
+            return {"status": "success", "metrics": json.load(f)}
+    return {"status": "error", "message": f"ไม่พบไฟล์ที่ {METRICS_PATH}"}
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
