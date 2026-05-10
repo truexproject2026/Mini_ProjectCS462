@@ -102,4 +102,4 @@ CLOUDINARY_API_SECRET=api_secret_ของคุณ
 - [คู่มือการติดตั้งออนไลน์](./DEPLOYMENT_GUIDE_TH.txt)
 
 ---
-**โปรเจควิชา CS462 Machine Learning Assignment**
+**โปรเจควิชา CS462 Data Analytics and Mining**

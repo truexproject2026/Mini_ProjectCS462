@@ -1,4 +1,4 @@
-# 🤖 Thai Handwriting ML - Project Summary & Memory (GEMINI.md)
+# CS462 Data Analytics and Mining - Project Summary
 
 ไฟล์นี้สรุปสถานะล่าสุดของโปรเจค เพื่อให้ AI ในรอบถัดไปเข้าใจโครงสร้างและทำงานต่อได้ทันที
 
@@ -45,4 +45,4 @@
 - **Model Permanence:** การอัปโหลดผ่านหน้าเว็บเป็นค่าชั่วคราว หากต้องการเปลี่ยนถาวรต้อง Commit ลง GitHub เท่านั้น
 
 ---
-*Last Updated: 2026-05-10 | Status: Online & Fully Functional*
+*Last Updated: 2026-05-10 | Status: Online & Fully Functional | CS462 Data Analytics and Mining*
