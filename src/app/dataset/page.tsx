@@ -88,8 +88,8 @@ export default function CollectData() {
 
           {/* ส่วนวาด */}
           <div className="md:col-span-2 space-y-6">
-            <div className="bg-white p-4 rounded-3xl shadow-xl border-4 border-white inline-block w-full">
-              <DrawingCanvas onCanvasExport={setCurrentImage} />
+            <div className="bg-white p-4 rounded-3xl shadow-xl border-4 border-white inline-block w-full flex justify-center">
+              <DrawingCanvas onCanvasExport={setCurrentImage} width={500} height={500} />
             </div>
 
             <div className="flex gap-4">
