@@ -55,13 +55,10 @@ def load_model():
 load_model()
 
 # ---------------------------------------------------------
-# 2. ฟังก์ชันปรับแต่งภาพ (Preprocessing)
+# 2. ฟังก์ชันปรับแต่งภาพ (Preprocessing V6: ปิด Dilation เพื่อรักษาหัวเลข 36)
 # ---------------------------------------------------------
 def preprocess_image(image):
-    # 1. แปลงเป็น Grayscale
     img = image.convert('L')
-    
-    # 2. Centering: หาขอบเขตตัวเลขและวางกึ่งกลาง
     img_array = np.array(img)
     inverted_img = 255 - img_array
     coords = np.column_stack(np.where(inverted_img > 40)) 
@@ -72,16 +69,16 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        # เพิ่มขอบเป็น 10 พิกเซล (V2) เพื่อให้หางเลข ๓๘, ๓๙ ไม่โดนตัด
-        size = max(w, h) + 10
+        # เพิ่มขอบ (Padding) เป็น 14 พิกเซล
+        size = max(w, h) + 14
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         img = new_img.resize((28, 28), Image.Resampling.LANCZOS)
     else:
         img = img.resize((28, 28))
 
-    # 3. Binary Thresholding: ทำให้เป็นขาวดำสนิท (V2 ปรับเข้มขึ้นเป็น 190)
-    fn = lambda x : 255 if x > 190 else 0
+    # Binary Thresholding (ปรับให้คมชัด)
+    fn = lambda x : 255 if x > 170 else 0
     img = img.point(fn, mode='L')
     
     return img

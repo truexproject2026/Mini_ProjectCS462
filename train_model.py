@@ -20,7 +20,7 @@ LABELS = ["๓๖", "๓๗", "๓๘", "๓๙", "๔๐"]
 
 def preprocess_image(image):
     """
-    V5 Update: เน้นเส้นหนาแบบธรรมชาติ (รูไม่ตัน หางไม่หาย)
+    V6 Update: ปิด Dilation (เพราะปากกาหนาพอแล้ว) เพื่อรักษา 'รู' ของเลข 36
     """
     # 1. แปลงเป็น Grayscale
     img = image.convert('L')
@@ -28,7 +28,7 @@ def preprocess_image(image):
     # 2. Centering: หาขอบเขตตัวเลข
     img_array = np.array(img)
     inverted_img = 255 - img_array
-    coords = np.column_stack(np.where(inverted_img > 30)) 
+    coords = np.column_stack(np.where(inverted_img > 40)) 
     
     if coords.size > 0:
         y_min, x_min = coords.min(axis=0)
@@ -36,21 +36,18 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        # เพิ่มขอบ (Padding) ให้สมดุล
-        size = max(w, h) + 12
+        # เพิ่มขอบ (Padding) เป็น 14 พิกเซล เพื่อให้เส้นหนาไม่เบียดขอบ
+        size = max(w, h) + 14
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         
-        # 3. เบ่งเส้นก่อนย่อเพื่อให้ความหนาคงที่ (ใช้ 3x3 filter ที่ถูกต้อง)
-        # ทำแค่กับรูปที่ดูเส้นบาง (Threshold < 200)
-        new_img = new_img.filter(ImageFilter.MinFilter(3))
-        
+        # V6: ไม่ใช้ Filter เบ่งเส้นแล้ว เพื่อความคมชัดของรูตัวเลข
         img = new_img.resize(IMG_SIZE, Image.Resampling.LANCZOS)
     else:
         img = img.resize(IMG_SIZE)
 
-    # 4. Binary Thresholding (ปรับให้ดูนุ่มนวลขึ้นที่ 160)
-    fn = lambda x : 255 if x > 160 else 0
+    # 3. Binary Thresholding (ปรับให้คมชัดที่ 170)
+    fn = lambda x : 255 if x > 170 else 0
     img = img.point(fn, mode='L')
     
     return img
@@ -63,7 +60,7 @@ def load_dataset():
     X = []
     y = []
     
-    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V5: Natural Thickness) ---")
+    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V6: Crisp Loops) ---")
     
     for label in LABELS:
         label_dir = os.path.join(DATASET_DIR, label)
@@ -76,7 +73,7 @@ def load_dataset():
                     raw_img = Image.open(img_path)
                     clean_img = preprocess_image(raw_img)
                     
-                    # ๓๘ และ ๓๙ ยังปั๊มเยอะเหมือนเดิม
+                    # ปรับสมดุล Augmentation 
                     aug_count = 25 if label in ["๓๘", "๓๙"] else 15
                     
                     variants = []
@@ -126,24 +123,21 @@ def train():
     X, y = load_dataset()
     if len(X) == 0: return print("Error: No data")
 
-    print(f"จำนวนข้อมูลรวมหลัง Augmentation: {len(X)} รูป")
-
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # 2. การสร้างโมเดล (V5: คุมขนาดให้เบาแต่ฉลาด)
+    # 2. การสร้างโมเดล (V6: ExtraTrees 200 ต้น เพื่อความแม่นยำรายคลาส)
     model = ExtraTreesClassifier(
-        n_estimators=180, 
-        max_depth=35,
+        n_estimators=200, 
+        max_depth=40,
         min_samples_leaf=1,
         class_weight='balanced',
         random_state=42,
         n_jobs=-1
     )
     
-    print("--- กำลังเทรนโมเดล V5... ---")
+    print("--- กำลังเทรนโมเดล V6... ---")
     model.fit(X_train, y_train)
 
-    # 5. ประเมินผล
     y_pred = model.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred, average='weighted')
@@ -157,7 +151,6 @@ def train():
 
     print(f"Final Accuracy: {acc:.4f} | F1: {f1:.4f}")
 
-    # 6. บันทึกผล
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     joblib.dump(model, MODEL_PATH, compress=9)
     
