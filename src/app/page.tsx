@@ -74,13 +74,16 @@ export default function Home() {
         body: formData,
       });
       const result = await res.json();
+      
       if (result.status === 'success') {
         setModelStatus(selectedFile.name);
         alert("อัปโหลดโมเดลสำเร็จ!");
         fetchMetrics();
+      } else {
+        alert("การอัปโหลดล้มเหลว: " + (result.message || "ไม่ทราบสาเหตุ"));
       }
     } catch (error) {
-      alert("การอัปโหลดล้มเหลว");
+      alert("การอัปโหลดล้มเหลว: เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย");
     } finally {
       setLoading(false);
     }
