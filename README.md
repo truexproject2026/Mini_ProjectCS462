@@ -1,91 +1,107 @@
-# ✍️ Thai Handwriting ML System (๓๖ - ๔๐)
+# ✍️ Thai Handwriting Recognition ML System (๓๖ - ๔๐)
 
-ระบบทำนายลายมือตัวเลขไทยในช่วง **๓๖, ๓๗, ๓๘, ๓๙ และ ๔๐** พัฒนาด้วยเทคโนโลยีสมัยใหม่แบบ Full-stack ร่วมกับ Machine Learning (Random Forest) เพื่อการเรียนรู้และจำแนกลายมืออย่างแม่นยำ
+A professional, full-stack Machine Learning application for recognizing and collecting Thai handwritten digits (36-40). Built with a modern hybrid-cloud architecture featuring Next.js, FastAPI, and Random Forest.
 
----
-
-## 🌟 Features
-
-- **🎯 Real-time Prediction:** วาดตัวเลขและทำนายผลทันทีผ่าน AI Backend
-- **📁 Dataset Collection:** ระบบเก็บข้อมูลลายมืออัตโนมัติ เพื่อนำไปเทรนโมเดลให้ฉลาดขึ้น
-- **📊 Admin Dashboard:** ดูค่าสถิติความแม่นยำ (Metrics) และจัดการไฟล์โมเดล (.pkl)
-- **☁️ Google Drive Integration:** สำรองข้อมูล Dataset ขึ้นระบบ Cloud โดยอัตโนมัติ
-- **📱 Responsive Design:** ใช้งานได้ทั้งบนคอมพิวเตอร์และแท็บเล็ต (Touch support)
+[![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://mini-pj-online.vercel.app/)
+[![Backend](https://img.shields.io/badge/backend-FastAPI-blue)](https://mini-projectcs462.onrender.com/docs)
+[![Frontend](https://img.shields.io/badge/frontend-Next.js-black)](https://vercel.com/)
 
 ---
 
-## 🏗️ Tech Stack
+## 🌟 Key Features
 
-- **Frontend:** [Next.js 15](https://nextjs.org/) (React, TypeScript, Tailwind CSS)
-- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python)
-- **ML Library:** Scikit-learn, NumPy, Pillow (PIL)
-- **Database/Storage:** Local Storage & Google Drive API
+- **🎯 Intelligent Prediction:** Real-time Thai digit recognition using a Random Forest classifier.
+- **📁 Dataset Collection:** Integrated canvas for drawing and saving new samples directly to **Cloudinary** for persistent storage.
+- **🧠 Dynamic Model Loading:** Admin interface to upload and swap ML models (`.pkl`) in real-time without server restarts.
+- **📱 Responsive Design:** Fully optimized for desktop and mobile tablets with touch support.
+- **⚡ Hybrid Architecture:** Decoupled Frontend (Vercel) and Backend (Render) for optimal performance and scalability.
 
 ---
 
-## 🚀 Getting Started
+## 🏗️ Technology Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | [Next.js 15](https://nextjs.org/) (React, TypeScript, Tailwind CSS) |
+| **AI Backend** | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12+) |
+| **Machine Learning** | Scikit-learn, NumPy, PIL |
+| **Image Storage** | [Cloudinary](https://cloudinary.com/) (Persistent Cloud Storage) |
+| **Deployment** | Vercel (Frontend) & Render.com (Backend) |
+
+---
+
+## 🚀 System Architecture
+
+```mermaid
+graph LR
+    User((User)) -->|Draws Digit| Vercel[Next.js Frontend - Vercel]
+    Vercel -->|Predict Request| Render[FastAPI Backend - Render]
+    Render -->|Random Forest| Result[Prediction + Confidence]
+    Vercel -->|Save Sample| Cloudinary[Cloudinary Storage]
+    Admin[Admin] -->|Upload .pkl| Render
+    Render -->|Reload Memory| Memory[(Model In-Memory)]
+```
+
+---
+
+## 🛠️ Local Development
 
 ### 1. Prerequisites
-- Node.js (v18+)
-- Python (3.9+)
+- Node.js 18+
+- Python 3.9+
+- Cloudinary Account (for data collection)
 
-### 2. Setup Backend (Python)
+### 2. Backend Setup
 ```powershell
-# เข้าไปที่โฟลเดอร์โปรเจค
-cd thai-handwriting-next
-
-# สร้าง Virtual Environment
+cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-
-# ติดตั้ง Library
-pip install -r backend/requirements.txt
-
-# รัน Backend Server
-python backend/main.py
+pip install -r requirements.txt
+python main.py
 ```
 
-### 3. Setup Frontend (Next.js)
+### 3. Frontend Setup
 ```powershell
-# ติดตั้ง dependencies
 npm install
-
-# สร้างไฟล์ .env.local และกำหนดค่า
-# BACKEND_URL=http://localhost:8000
-
-# รัน Frontend
 npm run dev
 ```
-เข้าใช้งานที่: `http://localhost:3000`
-
----
-
-## 🧠 Machine Learning Pipeline
-
-1. **Data Collection:** เก็บรูปภาพจาก Canvas ขนาด 400x400 px
-2. **Preprocessing:** 
-   - แปลงเป็น Grayscale
-   - **Centering:** จัดตำแหน่งตัวเลขให้อยู่กึ่งกลางภาพ
-   - **Resize:** ย่อขนาดเหลือ 28x28 px
-   - **Normalization:** ปรับค่าสีเป็น 0.0 - 1.0 (Inverted)
-3. **Training:** ใช้ **Random Forest Classifier** (100 estimators)
-4. **Deployment:** บันทึกโมเดลเป็นไฟล์ `.pkl` และโหลดเข้าหน่วยความจำผ่าน FastAPI
+Configure `.env.local`:
+```text
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+CLOUDINARY_CLOUD_NAME=your_name
+CLOUDINARY_API_KEY=your_key
+CLOUDINARY_API_SECRET=your_secret
+```
 
 ---
 
 ## 📂 Project Structure
 
-```text
-├── backend/            # Python FastAPI Backend
-├── dataset/            # ที่เก็บรูปภาพแยกตาม Class (๓๖-๔๐)
-├── models/             # ไฟล์โมเดล (.pkl) และ Metrics (.json)
-├── public/             # Static Assets
-├── src/                # Next.js Frontend (App Router)
-│   ├── app/            # Pages & API Routes
-│   └── components/     # React Components (DrawingCanvas)
-├── train_model.py      # Script สำหรับเทรนโมเดลใหม่
-└── AGENTS.md           # หน่วยความจำและ Concept ของโปรเจค
-```
+- `backend/`: FastAPI implementation & AI Logic.
+- `src/app/`: Next.js App Router (Pages & API Proxy).
+- `src/components/`: Reusable React components (Drawing Canvas).
+- `models/`: Pre-trained models (`.pkl`) and metrics.
+- `dataset/`: (Local) Image samples for training.
 
 ---
-**CS462 Machine Learning Assignment**
+
+## 🧪 Machine Learning Details
+
+1. **Preprocessing:** 
+   - Grayscale conversion
+   - Centering & Bounding Box cropping
+   - Resize to 28x28 pixels
+   - Binary Thresholding (Standardizing stroke clarity)
+2. **Model:** Random Forest Classifier (100 estimators).
+3. **Accuracy:** ~90% (based on current dataset).
+
+---
+
+## 📄 Documentation
+
+- [Deployment Guide (Thai)](./DEPLOYMENT_GUIDE_TH.txt) - Step-by-step cloud setup.
+- [Project Memory (AI Info)](./GEMINI.md) - Internal technical details.
+
+---
+**CS462 Machine Learning Assignment**  
+*Developed with ❤️ and AI Assistance*
