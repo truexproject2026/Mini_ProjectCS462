@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import pickle
 import base64
@@ -47,11 +47,7 @@ load_model()
 # 2. ฟังก์ชันปรับแต่งภาพ (Preprocessing)
 # ---------------------------------------------------------
 def preprocess_image(image):
-    """ทำภาพให้เป็นมาตรฐานเดียวกับตอนเทรน (Centering + Binary Threshold)"""
-    # 1. แปลงเป็น Grayscale
     img = image.convert('L')
-    
-    # 2. Centering & Bounding Box
     img_array = np.array(img)
     inverted_img = 255 - img_array
     coords = np.column_stack(np.where(inverted_img > 30))
@@ -69,10 +65,8 @@ def preprocess_image(image):
     else:
         img = img.resize((28, 28))
 
-    # 3. Binary Thresholding
     fn = lambda x : 255 if x > 180 else 0
     img = img.point(fn, mode='L')
-    
     return img
 
 class ImageInput(BaseModel):
@@ -87,13 +81,10 @@ async def predict(input_data: ImageInput):
         header, encoded = input_data.image_data.split(",", 1)
         image_bytes = base64.b64decode(encoded)
         raw_image = Image.open(io.BytesIO(image_bytes))
-        
         processed_img = preprocess_image(raw_image)
-        
         img_array = np.array(processed_img).astype('float32') / 255.0
         img_array = 1.0 - img_array
         img_array = img_array.reshape(1, -1)
-        
         prediction = model.predict(img_array)[0]
         
         confidence = 0.0
@@ -101,10 +92,24 @@ async def predict(input_data: ImageInput):
             probs = model.predict_proba(img_array)
             confidence = float(np.max(probs))
 
-        return {
-            "prediction": str(prediction),
-            "confidence": confidence
-        }
+        return {"prediction": str(prediction), "confidence": confidence}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/upload-model")
+async def upload_model(file: UploadFile = File(...)):
+    try:
+        if not file.filename.endswith('.pkl'):
+            raise HTTPException(status_code=400, detail="ต้องเป็นไฟล์ .pkl เท่านั้น")
+            
+        with open(MODEL_PATH, "wb") as f:
+            content = await file.read()
+            f.write(content)
+            
+        if load_model():
+            return {"status": "success", "filename": file.filename}
+        else:
+            return {"status": "error", "message": "โหลดโมเดลใหม่ไม่สำเร็จ"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
