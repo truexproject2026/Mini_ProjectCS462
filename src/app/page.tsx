@@ -69,10 +69,15 @@ export default function Home() {
     formData.append('file', selectedFile);
 
     try {
-      const res = await fetch('/api/upload-model', {
+      // 1. ลองดึงค่า URL ของ Backend (ต้องตั้งค่าใน Vercel เป็น NEXT_PUBLIC_BACKEND_URL)
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      
+      // 2. ส่งไฟล์ไปหา Render โดยตรง (ข้าม Vercel เพื่อเลี่ยงลิมิต 4.5MB)
+      const res = await fetch(`${backendUrl}/upload-model`, {
         method: 'POST',
         body: formData,
       });
+      
       const result = await res.json();
       
       if (result.status === 'success') {
@@ -83,7 +88,8 @@ export default function Home() {
         alert("การอัปโหลดล้มเหลว: " + (result.message || "ไม่ทราบสาเหตุ"));
       }
     } catch (error) {
-      alert("การอัปโหลดล้มเหลว: เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย");
+      console.error("Upload error:", error);
+      alert("การอัปโหลดล้มเหลว: ไม่สามารถเชื่อมต่อกับ AI Server โดยตรงได้");
     } finally {
       setLoading(false);
     }
