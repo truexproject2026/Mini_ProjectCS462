@@ -12,8 +12,8 @@ interface DrawingCanvasProps {
 
 export default function DrawingCanvas({ 
   onCanvasExport, 
-  width = 600, 
-  height = 400,
+  width = 450, 
+  height = 350,
   className = "canvas-index" 
 }: DrawingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -33,8 +33,8 @@ export default function DrawingCanvas({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // ตั้งค่าปากกา (V6 Update: ปรับเป็น 24 เพื่อไม่ให้หัวเลข 36 ตัน)
-    ctx.lineWidth = 24;      // ความหนาเส้น
+    // ตั้งค่าปากกา (Compact Redesign: ปรับเป็น 20 เพื่อความสมดุล)
+    ctx.lineWidth = 20;      // ความหนาเส้น
     ctx.lineCap = 'round';   // ปลายเส้นมน
     ctx.strokeStyle = '#000000'; // สีดำ
 
