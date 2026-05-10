@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import DrawingCanvas from '@/components/DrawingCanvas';
 import Navbar from '@/components/Navbar';
-import { Save, Trash2, FolderOpen } from 'lucide-react';
+import { Save, Trash2, Lightbulb, Fingerprint, Database } from 'lucide-react';
 
 export default function CollectData() {
   const [currentImage, setCurrentImage] = useState<string>("");
@@ -33,7 +33,6 @@ export default function CollectData() {
 
       if (result.status === 'success') {
         setSaveStatus({ type: 'success', msg: `บันทึกข้อมูล ${selectedLabel} สำเร็จ!` });
-        // เคลียร์ Canvas หลังจากเซฟสำเร็จ
         if ((window as any).clearCanvas) {
           (window as any).clearCanvas();
         }
@@ -54,69 +53,103 @@ export default function CollectData() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f8fafc]">
+    <main className="min-h-screen bg-[#f8fafc] pb-10">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Collect Dataset</h1>
-          <p className="text-gray-600">ช่วยเราวาดตัวเลขไทยเพื่อนำไปสอน AI ให้แม่นยำขึ้น</p>
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
+        
+        {/* --- Refined Header --- */}
+        <div className="dataset-header">
+          <div style={{ position: 'absolute', top: '10px', right: '20px', opacity: 0.1 }}>
+            <Database size={100} />
+          </div>
+          <h1>Collect Dataset</h1>
+          <p>ช่วยเราวาดตัวเลขไทยเพื่อนำไปสอน AI ให้แม่นยำขึ้นกว่าเดิม</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* ส่วนควบคุม */}
-          <div className="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FolderOpen size={20} className="text-blue-500" /> เลือกตัวเลขที่จะวาด
-            </h3>
-            <div className="flex flex-col gap-2">
-              {labels.map((label) => (
-                <button
-                  key={label}
-                  onClick={() => setSelectedLabel(label)}
-                  className={`py-3 px-4 rounded-xl text-lg font-medium transition-all ${
-                    selectedLabel === label 
-                    ? 'bg-blue-600 text-white shadow-md scale-105' 
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  ตัวเลข {label}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* --- Label Selection (Horizontal Pills) --- */}
+        <div className="label-selector">
+          {labels.map((label) => (
+            <button
+              key={label}
+              onClick={() => setSelectedLabel(label)}
+              className={`label-pill ${selectedLabel === label ? 'active' : ''}`}
+            >
+              ตัวเลข {label}
+            </button>
+          ))}
+        </div>
 
-          {/* ส่วนวาด */}
-          <div className="md:col-span-2 space-y-6">
-            <div className="bg-white p-4 rounded-3xl shadow-xl border-4 border-white inline-block w-full flex justify-center">
-              <DrawingCanvas onCanvasExport={setCurrentImage} width={600} height={400} />
+        <div className="container" style={{ gridTemplateColumns: '1.4fr 0.6fr' }}>
+          
+          {/* --- Drawing Column --- */}
+          <div className="space-y-4">
+            <div className="card" style={{ padding: '10px', display: 'flex', justifyContent: 'center', background: '#f8fafc' }}>
+              <DrawingCanvas onCanvasExport={setCurrentImage} width={450} height={350} />
             </div>
 
-            <div className="flex gap-4">
+            <div className="btn-group">
               <button 
                 onClick={handleSave}
                 disabled={loading}
-                className="flex-[2] bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="predict-btn"
+                style={{ background: '#10b981', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}
               >
-                <Save size={24} /> {loading ? "กำลังบันทึก..." : `บันทึกตัวเลข ${selectedLabel}`}
+                <i className="fa-solid fa-cloud-arrow-up" style={{ marginRight: '8px' }}></i>
+                {loading ? "Saving..." : `Save ${selectedLabel}`}
               </button>
               <button 
                 onClick={clearCanvas}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-6 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+                className="clear-btn"
               >
-                <Trash2 size={24} /> ล้าง
+                <i className="fa-solid fa-trash-can" style={{ marginRight: '8px' }}></i>
+                Clear
               </button>
             </div>
 
             {saveStatus && (
-              <div className={`p-4 rounded-xl text-center font-medium animate-bounce ${
-                saveStatus.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
+              <div style={{ 
+                padding: '12px', 
+                borderRadius: '14px', 
+                textAlign: 'center', 
+                fontSize: '13px',
+                fontWeight: 600,
+                background: saveStatus.type === 'success' ? '#f0fdf4' : '#fef2f2',
+                color: saveStatus.type === 'success' ? '#166534' : '#991b1b',
+                border: `1px solid ${saveStatus.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+                animation: 'fadeIn 0.3s ease-out'
+              }}>
                 {saveStatus.msg}
               </div>
             )}
           </div>
+
+          {/* --- Info Column --- */}
+          <div className="space-y-4">
+            <div className="card">
+              <div className="tips-title">
+                <Lightbulb size={16} /> Drawing Tips
+              </div>
+              <ul className="tips-text" style={{ paddingLeft: '15px', listStyleType: 'disc' }}>
+                <li>วาดให้ตัวเลขอยู่กึ่งกลางพื้นที่</li>
+                <li>ใช้ความเร็วในการวาดปกติ</li>
+                <li>เน้นวาด "หาง" ของเลข ๓๘ และ ๓๙ ให้ชัดเจน</li>
+                <li>วาดหลายๆ รูปแบบ (ตัวเอียง, ตัวหนา, ตัวบาง)</li>
+              </ul>
+            </div>
+
+            <div className="card" style={{ background: '#eff6ff', borderColor: '#dbeafe' }}>
+              <div className="tips-title" style={{ color: '#1e40af' }}>
+                <Fingerprint size={16} /> Dataset Info
+              </div>
+              <p className="tips-text" style={{ color: '#1e40af' }}>
+                ข้อมูลของคุณจะถูกอัปโหลดไปยัง Cloudinary และใช้ในการ Re-train โมเดลในอนาคตเพื่อเพิ่มความแม่นยำ
+              </p>
+            </div>
+          </div>
+
         </div>
+
       </div>
     </main>
   );
