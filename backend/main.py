@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
-import pickle
+import joblib
 import base64
 import io
 from PIL import Image
@@ -27,12 +27,10 @@ app.add_middleware(
 # ---------------------------------------------------------
 # 1. การจัดการ Path และโมเดล
 # ---------------------------------------------------------
-# หา Path ของโปรเจคให้ชัวร์ที่สุด
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(CURRENT_DIR) if os.path.basename(CURRENT_DIR) == 'backend' else CURRENT_DIR
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 
-# สร้างโฟลเดอร์ models ถ้าไม่มี
 if not os.path.exists(MODELS_DIR):
     os.makedirs(MODELS_DIR)
 
@@ -45,9 +43,9 @@ def load_model():
     global model
     try:
         if os.path.exists(MODEL_PATH):
-            with open(MODEL_PATH, 'rb') as f:
-                model = pickle.load(f)
-            print(f"--- Loaded Model: {MODEL_PATH} ---")
+            # ใช้ joblib โหลดโมเดลบีบอัด
+            model = joblib.load(MODEL_PATH)
+            print(f"--- Loaded Model (Joblib): {MODEL_PATH} ---")
             return True
         print(f"--- Model not found at: {MODEL_PATH} ---")
         return False
@@ -64,7 +62,7 @@ def preprocess_image(image):
     img = image.convert('L')
     img_array = np.array(img)
     inverted_img = 255 - img_array
-    coords = np.column_stack(np.where(inverted_img > 30))
+    coords = np.column_stack(np.where(inverted_img > 40)) # ใช้ Threshold 40 ให้ตรงกับโค้ดเทรน
     if coords.size > 0:
         y_min, x_min = coords.min(axis=0)
         y_max, x_max = coords.max(axis=0)
@@ -104,12 +102,10 @@ async def predict(input_data: ImageInput):
 @app.post("/upload-model")
 async def upload_model(file: UploadFile = File(...), metrics_file: Optional[UploadFile] = File(None)):
     try:
-        # เซฟโมเดล
         with open(MODEL_PATH, "wb") as f:
             content = await file.read()
             f.write(content)
         
-        # เซฟสถิติ (ถ้ามี)
         if metrics_file:
             content = await metrics_file.read()
             with open(METRICS_PATH, "wb") as f:

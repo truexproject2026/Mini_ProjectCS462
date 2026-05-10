@@ -2,8 +2,9 @@ import os
 import numpy as np
 from PIL import Image, ImageOps, ImageFilter
 import pickle
+import joblib
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, confusion_matrix
 import json
 import random
@@ -22,7 +23,6 @@ def preprocess_image(image):
     ฟังก์ชันปรับแต่งภาพระดับสูง:
     - หาขอบเขตและจัดกึ่งกลาง
     - ทำ Thresholding (ทำให้เป็นขาวดำสนิท)
-    - ลด Noise
     """
     # 1. แปลงเป็น Grayscale
     img = image.convert('L')
@@ -30,7 +30,7 @@ def preprocess_image(image):
     # 2. Centering: หาขอบเขตตัวเลขและวางกึ่งกลาง
     img_array = np.array(img)
     inverted_img = 255 - img_array
-    coords = np.column_stack(np.where(inverted_img > 30)) # Threshold เบื้องต้นหาตัวเลข
+    coords = np.column_stack(np.where(inverted_img > 40)) # เพิ่ม Threshold หาตัวเลขให้ชัดขึ้น
     
     if coords.size > 0:
         y_min, x_min = coords.min(axis=0)
@@ -38,46 +38,19 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        size = max(w, h) + 4 # เพิ่มขอบนิดหน่อย
+        # สร้างพื้นหลังขาวใหม่และวางตัวเลขไว้ตรงกลาง
+        size = max(w, h) + 4
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         img = new_img.resize(IMG_SIZE, Image.Resampling.LANCZOS)
     else:
         img = img.resize(IMG_SIZE)
 
-    # 3. Binary Thresholding: ทำให้เป็นขาวดำสนิท (กำจัดสีเทาที่ทำให้ AI งง)
-    # ถ้าค่าความสว่าง < 200 (คือส่วนที่เป็นเส้น) ให้เป็น 0 (ดำ) ถ้าสว่างกว่านั้นให้เป็น 255 (ขาว)
+    # 3. Binary Thresholding: ทำให้เป็นขาวดำสนิท
     fn = lambda x : 255 if x > 180 else 0
     img = img.point(fn, mode='L')
     
     return img
-
-def augment_image(image):
-    """
-    ฟังก์ชันสร้าง 'ร่างแยก' ให้รูปภาพ (Data Augmentation):
-    - หมุนภาพเล็กน้อย
-    - ขยับตำแหน่งเล็กน้อย
-    """
-    augmented_images = []
-    
-    # 1. รูปต้นฉบับ
-    augmented_images.append(image)
-    
-    # 2. หมุนซ้าย-ขวา (-10 ถึง 10 องศา)
-    for _ in range(3):
-        angle = random.uniform(-12, 12)
-        rotated = image.rotate(angle, fillcolor=255)
-        augmented_images.append(rotated)
-        
-    # 3. ขยับตำแหน่ง (Shift)
-    for _ in range(3):
-        tx = random.randint(-2, 2)
-        ty = random.randint(-2, 2)
-        shifted = Image.new('L', IMG_SIZE, 255)
-        shifted.paste(image, (tx, ty))
-        augmented_images.append(shifted)
-        
-    return augmented_images
 
 # ---------------------------------------------------------
 # 2. โหลดชุดข้อมูลและเพิ่มจำนวน (Load & Augment)
@@ -89,7 +62,7 @@ def load_dataset():
     
     print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (Augmentation) ---")
     
-    # นับจำนวนรูปภาพในแต่ละคลาสเพื่อใช้ในการทำ Balanced Augmentation
+    # นับจำนวนรูปภาพในแต่ละคลาส
     class_counts = {}
     for label in LABELS:
         label_dir = os.path.join(DATASET_DIR, label)
@@ -97,7 +70,7 @@ def load_dataset():
             count = len([f for f in os.listdir(label_dir) if f.lower().endswith((".png", ".jpg"))])
             class_counts[label] = count
     
-    max_count = max(class_counts.values()) if class_counts else 0
+    print(f"จำนวนรูปภาพต้นฉบับ: {class_counts}")
 
     for label in LABELS:
         label_dir = os.path.join(DATASET_DIR, label)
@@ -107,34 +80,42 @@ def load_dataset():
             if img_name.lower().endswith((".png", ".jpg")):
                 img_path = os.path.join(label_dir, img_name)
                 try:
-                    # โหลดและทำ Preprocess ขั้นพื้นฐาน
                     raw_img = Image.open(img_path)
                     clean_img = preprocess_image(raw_img)
                     
-                    # ตัดสินใจจำนวน Augmentation ตามความสมดุลของข้อมูล
-                    # ถ้าข้อมูลน้อย ให้ปั๊มรูปเพิ่มมากกว่าปกติ
-                    aug_count = 7 # พื้นฐาน
-                    if class_counts[label] < 50:
-                        aug_count = 20 # ถ้าข้อมูลน้อยกว่า 50 รูป ให้เพิ่มเป็น 20 variants
+                    # ปรับ Augmentation ตามความยากและจำนวนข้อมูล
+                    # ๓๘ และ ๓๙ มักจะเขียนคล้ายกัน จึงต้องปั๊มให้ AI จำแม่นขึ้น
+                    if label in ["๓๘", "๓๙", "๔๐"]:
+                        aug_count = 25 # ปั๊มรูปเพิ่ม 25 เท่าสำหรับเลขที่ยังมีปัญหา
+                    else:
+                        aug_count = 12 # 12 เท่าสำหรับเลขที่แม่นอยู่แล้ว
                     
-                    # สร้างรูปเพิ่มจากรูปเดิม (Augmentation)
                     variants = []
                     variants.append(clean_img) # ต้นฉบับ
                     
-                    # เพิ่ม variants จนครบตามที่ต้องการ
                     for _ in range(aug_count - 1):
-                        # สุ่มเลือกระหว่างหมุนหรือขยับ
-                        choice = random.choice(['rotate', 'shift', 'both'])
                         v = clean_img
+                        choice = random.choice(['rotate', 'shift', 'both', 'zoom'])
+                        
                         if choice in ['rotate', 'both']:
                             angle = random.uniform(-15, 15)
                             v = v.rotate(angle, fillcolor=255)
+                        
                         if choice in ['shift', 'both']:
                             tx = random.randint(-3, 3)
                             ty = random.randint(-3, 3)
                             shifted = Image.new('L', IMG_SIZE, 255)
                             shifted.paste(v, (tx, ty))
                             v = shifted
+
+                        if choice == 'zoom':
+                            zoom_factor = random.uniform(0.8, 1.1)
+                            w, h = v.size
+                            new_w, new_h = int(w * zoom_factor), int(h * zoom_factor)
+                            v_resized = v.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                            v = Image.new('L', IMG_SIZE, 255)
+                            v.paste(v_resized, ((IMG_SIZE[0]-new_w)//2, (IMG_SIZE[1]-new_h)//2))
+                        
                         variants.append(v)
                     
                     for v in variants:
@@ -156,56 +137,52 @@ def train():
     X, y = load_dataset()
     if len(X) == 0: return print("Error: No data")
 
-    print(f"จำนวนข้อมูลหลัง Augmentation: {len(X)} รูป")
+    print(f"จำนวนข้อมูลรวมหลัง Augmentation: {len(X)} รูป")
 
     # 1. การแบ่งข้อมูล
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # 2. การสร้างโมเดล (Random Forest) - เพิ่ม class_weight='balanced'
-    model = RandomForestClassifier(n_estimators=300, max_depth=25, class_weight='balanced', random_state=42)
+    # 2. การสร้างโมเดล (ExtraTreesClassifier มักจะแม่นยำกว่า RF ในงานจำแนกภาพ)
+    # ใช้ n_estimators=500 เพื่อให้ขนาดไฟล์บีบอัดแล้วไม่เกิน 100MB
+    model = ExtraTreesClassifier(
+        n_estimators=500, 
+        max_depth=None,
+        min_samples_split=2,
+        class_weight='balanced',
+        random_state=42,
+        n_jobs=-1
+    )
     
-    # 3. Cross-validation (+5 Extra Points)
+    # 3. Cross-validation
     print("--- กำลังทำ Cross-validation (5-Fold)... ---")
     cv_scores = cross_val_score(model, X, y, cv=5)
-    cv_mean = cv_scores.mean()
-    print(f"Cross-validation Accuracy: {cv_mean:.4f}")
+    print(f"Cross-validation Accuracy: {cv_scores.mean():.4f}")
 
     # 4. การเทรนโมเดลจริง
-    print("--- กำลังเทรนโมเดลจริง... ---")
+    print("--- กำลังเทรนโมเดล... ---")
     model.fit(X_train, y_train)
 
-    # 5. ประเมินผล (Evaluation & Metrics)
+    # 5. ประเมินผล
     y_pred = model.predict(X_test)
-    
-    # คำนวณค่าต่าง ๆ ตาม Requirement 7
     acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, average='weighted', zero_division=0)
-    rec = recall_score(y_test, y_pred, average='weighted', zero_division=0)
-    f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
-    
-    # Error Analysis (Confusion Matrix) (+5 Extra Points)
-    conf_matrix = confusion_matrix(y_test, y_pred, labels=LABELS)
+    f1 = f1_score(y_test, y_pred, average='weighted')
     
     metrics = {
         "accuracy": float(acc),
-        "precision": float(prec),
-        "recall": float(rec),
         "f1_score": float(f1),
-        "cv_accuracy": float(cv_mean),
-        "confusion_matrix": conf_matrix.tolist(),
         "labels": LABELS,
         "report": classification_report(y_test, y_pred, output_dict=True, zero_division=0)
     }
 
-    print(f"Accuracy: {acc:.4f} | F1: {f1:.4f}")
+    print(f"Final Accuracy: {acc:.4f} | F1: {f1:.4f}")
 
-    # 6. บันทึกผล
+    # 6. บันทึกผล (ใช้ Joblib บีบอัดเพื่อให้ผ่าน GitHub Limit)
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-    with open(MODEL_PATH, 'wb') as f:
-        pickle.dump(model, f)
+    joblib.dump(model, MODEL_PATH, compress=9)
+    
     with open(METRICS_PATH, 'w', encoding='utf-8') as f:
         json.dump(metrics, f, ensure_ascii=False, indent=4)
-    print("--- บันทึกโมเดลและ Metrics เรียบร้อยแล้ว ---")
+    print(f"--- บันทึกเรียบร้อย! ขนาดโมเดล: {os.path.getsize(MODEL_PATH)/1024/1024:.2f} MB ---")
 
 if __name__ == "__main__":
     train()
