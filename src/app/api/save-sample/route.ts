@@ -24,11 +24,17 @@ export async function POST(request: Request) {
     const timestamp = Date.now();
     const filename = `${label}_${timestamp}.png`;
 
+    // แปลงชื่อ Label เป็นภาษาอังกฤษสำหรับโฟลเดอร์บน Cloud เพื่อป้องกันบัคชื่อไฟล์
+    const labelMap: { [key: string]: string } = {
+      "๓๖": "36", "๓๗": "37", "๓๘": "38", "๓๙": "39", "๔๐": "40"
+    };
+    const folderName = labelMap[label] || label;
+
     // --- ส่วนที่ 1: เซฟลง Cloud (Supabase) ถ้ามีการตั้งค่าไว้ ---
     if (supabase) {
       const { data, error } = await supabase.storage
         .from('datasets')
-        .upload(`${label}/${filename}`, buffer, {
+        .upload(`${folderName}/${filename}`, buffer, {
           contentType: 'image/png',
           upsert: false
         });
