@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dataset Tool</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav class="navbar">
+
+        <div class="nav-left">
+
+            <div class="logo"><i class="fa-solid fa-dice"></i></div>
+
+            <div>
+                <h2>Thai Handwriting ML</h2>
+
+                <p>
+                    ระบบจำแนกลายมือภาษาไทย
+                </p>
+            </div>
+
+        </div>
+
+        <div class="nav-menu">
+
+            <a href="index.html" class="nav-btn">
+                <i class="fa-solid fa-user"></i> User/Admin
+            </a>
+
+            <a href="dataset.html" class="nav-btn active-nav">
+                <i class="fa-solid fa-database"></i> Dataset
+            </a>
+
+        </div>
+
+    </nav>
+
+    <!-- ================= MAIN ================= -->
+
+    <div class="page">
+
+        <div class="card">
+
+            <div class="title">
+
+                <div class="icon green">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+
+                <div>
+                    <h2>Dataset Tool</h2>
+
+                    <div class="subtitle">
+                        เครื่องมือเก็บข้อมูลลายมือ
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Number -->
+
+            <div class="number-grid">
+
+                <button class="number-btn">
+                    ๓๖
+                </button>
+
+                <button class="number-btn">
+                    ๓๗
+                </button>
+
+                <button class="number-btn">
+                    ๓๘
+                </button>
+
+                <button class="number-btn">
+                    ๓๙
+                </button>
+
+                <button class="number-btn">
+                    ๔๐
+                </button>
+
+            </div>
+
+            <!-- Canvas -->
+
+            <div class="canvas-box-dataset">
+
+                <canvas id="datasetCanvas" class="canvas-dataset"></canvas>
+
+            </div>
+
+            <!-- Buttons -->
+
+            <div class="btn-group">
+
+                <button class="save-btn">
+                    Save Dataset
+                </button>
+
+                <button class="clear-btn" onclick="clearDatasetCanvas()">
+                    Clear
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</body>
+
+</html>

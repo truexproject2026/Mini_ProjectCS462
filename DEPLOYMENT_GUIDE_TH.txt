@@ -1,0 +1,58 @@
+=====================================================
+คู่มือการนำระบบขึ้น Cloud (Vercel & Render & Google Drive)
+=====================================================
+
+โปรเจคนี้ได้รับการปรับปรุงให้รองรับการทำงานบน Cloud โดยแบ่งหน้าที่ดังนี้:
+1. Frontend (Next.js) -> ฝากที่ Vercel
+2. Backend (FastAPI) -> ฝากที่ Render.com
+3. Dataset Storage   -> ฝากที่ Google Drive
+
+-----------------------------------------------------
+ขั้นตอนที่ 1: ตั้งค่า Supabase Storage (สำหรับเก็บรูป)
+-----------------------------------------------------
+1. เข้าไปที่ https://supabase.com/ และสมัครสมาชิก
+2. สร้าง Project ใหม่ (ตั้งชื่อ เช่น thai-handwriting)
+3. เมื่อสร้างเสร็จ ไปที่แถบ "Storage" (ไอคอนรูปถัง) ในแถบด้านซ้าย
+4. กด "Create a new bucket" ตั้งชื่อว่า `datasets`
+5. **สำคัญ**: ติ๊กถูกที่ช่อง "Public bucket" เพื่อให้เข้าถึงรูปได้ง่าย
+6. ไปที่แถบ "Project Settings" (ไอคอนรูปฟันเฟืองด้านล่างสุด) > เลือก "API"
+7. ก๊อปปี้ค่าต่อไปนี้ไปใช้:
+   - Project URL (คือค่า SUPABASE_URL)
+   - anon public (คือค่า SUPABASE_ANON_KEY)
+
+-----------------------------------------------------
+ขั้นตอนที่ 2: ตั้งค่า Environment Variables (.env)
+-----------------------------------------------------
+นำค่าที่ได้ไปใส่ใน Vercel Dashboard (Settings > Environment Variables) และไฟล์ .env.local:
+
+1. SUPABASE_URL = (ค่า Project URL ที่ได้จากข้อ 7)
+2. SUPABASE_ANON_KEY = (ค่า anon public ที่ได้จากข้อ 7)
+3. BACKEND_URL = (URL ของ Backend บน Render เช่น https://thai-handwriting-api.onrender.com)
+
+-----------------------------------------------------
+ขั้นตอนที่ 3: การ Deploy Backend ไปที่ Render.com
+-----------------------------------------------------
+1. สมัครสมาชิก Render.com และเชื่อมต่อ GitHub
+2. กด "New" > "Web Service"
+3. เลือก Repository ของคุณ
+4. ตั้งชื่อ Service และตั้งค่าดังนี้:
+   - Root Directory: backend
+   - Runtime: Python
+   - Build Command: pip install -r requirements.txt
+   - Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+5. กด Deploy และรอจนเสร็จ คุณจะได้ URL ของ Backend มา
+
+-----------------------------------------------------
+ขั้นตอนที่ 4: การ Deploy Frontend ไปที่ Vercel
+-----------------------------------------------------
+1. สมัครสมาชิก Vercel และเชื่อมต่อ GitHub
+2. กด "Add New" > "Project"
+3. เลือก Repository ของคุณ
+4. ใส่ Environment Variables ที่เตรียมไว้ในขั้นตอนที่ 2
+5. กด Deploy
+
+=====================================================
+หมายเหตุ:
+- การอัปโหลดโมเดลผ่านหน้า Admin บน Render (Free Tier) จะหายไปเมื่อเซิร์ฟเวอร์ Sleep หรือรีสตาร์ท แนะนำให้เทรนในเครื่องแล้ว Commit ไฟล์ current_model.pkl ขึ้น Git ไปด้วยเพื่อความถาวร
+- ข้อมูล Dataset จะถูกเก็บไว้ใน Google Drive อย่างปลอดภัยและถาวร
+=====================================================
