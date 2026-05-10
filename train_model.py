@@ -20,7 +20,7 @@ LABELS = ["๓๖", "๓๗", "๓๘", "๓๙", "๔๐"]
 
 def preprocess_image(image):
     """
-    V3 Update: เพิ่มการเบ่งเส้น (Dilation) เพื่อให้หางเลข 38/39 ชัดขึ้น
+    V5 Update: เน้นเส้นหนาแบบธรรมชาติ (รูไม่ตัน หางไม่หาย)
     """
     # 1. แปลงเป็น Grayscale
     img = image.convert('L')
@@ -28,7 +28,7 @@ def preprocess_image(image):
     # 2. Centering: หาขอบเขตตัวเลข
     img_array = np.array(img)
     inverted_img = 255 - img_array
-    coords = np.column_stack(np.where(inverted_img > 40)) 
+    coords = np.column_stack(np.where(inverted_img > 30)) 
     
     if coords.size > 0:
         y_min, x_min = coords.min(axis=0)
@@ -36,21 +36,22 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        # เพิ่มขอบ (Padding) 12 พิกเซล เพื่อให้หางไม่ติดขอบเกินไป
+        # เพิ่มขอบ (Padding) ให้สมดุล
         size = max(w, h) + 12
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
+        
+        # 3. เบ่งเส้นก่อนย่อเพื่อให้ความหนาคงที่ (ใช้ 3x3 filter ที่ถูกต้อง)
+        # ทำแค่กับรูปที่ดูเส้นบาง (Threshold < 200)
+        new_img = new_img.filter(ImageFilter.MinFilter(3))
+        
         img = new_img.resize(IMG_SIZE, Image.Resampling.LANCZOS)
     else:
         img = img.resize(IMG_SIZE)
 
-    # 3. Binary Thresholding (ปรับให้เส้นติดง่ายขึ้น)
-    fn = lambda x : 255 if x > 170 else 0
+    # 4. Binary Thresholding (ปรับให้ดูนุ่มนวลขึ้นที่ 160)
+    fn = lambda x : 255 if x > 160 else 0
     img = img.point(fn, mode='L')
-    
-    # 4. V3 Special: ทำ Dilation (เพิ่มความหนาเส้น) เพื่อให้ AI เห็น Feature ชัดขึ้น
-    # ใช้ MaxFilter เพื่อขยายสีดำ (ซึ่งในที่นี้คือเส้น)
-    img = img.filter(ImageFilter.MinFilter(3)) 
     
     return img
 
@@ -62,17 +63,8 @@ def load_dataset():
     X = []
     y = []
     
-    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V3: Dilation Enabled) ---")
+    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V5: Natural Thickness) ---")
     
-    class_counts = {}
-    for label in LABELS:
-        label_dir = os.path.join(DATASET_DIR, label)
-        if os.path.exists(label_dir):
-            count = len([f for f in os.listdir(label_dir) if f.lower().endswith((".png", ".jpg"))])
-            class_counts[label] = count
-    
-    print(f"จำนวนรูปภาพต้นฉบับ: {class_counts}")
-
     for label in LABELS:
         label_dir = os.path.join(DATASET_DIR, label)
         if not os.path.exists(label_dir): continue
@@ -84,7 +76,7 @@ def load_dataset():
                     raw_img = Image.open(img_path)
                     clean_img = preprocess_image(raw_img)
                     
-                    # ๓๘ และ ๓๙ ยังเป็นปัญหาหลัก ปั๊มเพิ่มเยอะๆ
+                    # ๓๘ และ ๓๙ ยังปั๊มเยอะเหมือนเดิม
                     aug_count = 25 if label in ["๓๘", "๓๙"] else 15
                     
                     variants = []
@@ -95,7 +87,7 @@ def load_dataset():
                         choice = random.choice(['rotate', 'shift', 'both', 'zoom'])
                         
                         if choice in ['rotate', 'both']:
-                            angle = random.uniform(-12, 12)
+                            angle = random.uniform(-10, 10)
                             v = v.rotate(angle, fillcolor=255)
                         
                         if choice in ['shift', 'both']:
@@ -138,18 +130,17 @@ def train():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # 2. การสร้างโมเดล (V3: ExtraTrees แบบ Sharp แต่จำนวนน้อยเพื่อคุม RAM)
-    # ExtraTrees มักจะให้ค่า Confidence ที่มั่นใจกว่า RF ในงานแบบนี้
+    # 2. การสร้างโมเดล (V5: คุมขนาดให้เบาแต่ฉลาด)
     model = ExtraTreesClassifier(
-        n_estimators=150, 
-        max_depth=40,
+        n_estimators=180, 
+        max_depth=35,
         min_samples_leaf=1,
         class_weight='balanced',
         random_state=42,
         n_jobs=-1
     )
     
-    print("--- กำลังเทรนโมเดล V3... ---")
+    print("--- กำลังเทรนโมเดล V5... ---")
     model.fit(X_train, y_train)
 
     # 5. ประเมินผล
