@@ -23,7 +23,8 @@ export async function POST(request: Request) {
     const filepath = path.join(modelDir, 'current_model.pkl');
     fs.writeFileSync(filepath, buffer);
 
-    // 2. บอกให้ Python Backend โหลดโมเดลใหม่ (Extra Points: Update without restart)
+    // 2. บอกให้ Python Backend โหลดโมเดลใหม่ (Dynamic Update)
+    // ระบบจะส่งคำสั่งไปยัง Render.com เพื่อเปลี่ยนโมเดลใน Memory ทันที
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     try {
       await fetch(`${backendUrl}/reload-model`, {
