@@ -12,8 +12,8 @@ interface DrawingCanvasProps {
 
 export default function DrawingCanvas({ 
   onCanvasExport, 
-  width = 700, 
-  height = 500,
+  width = 600, 
+  height = 400,
   className = "canvas-index" 
 }: DrawingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
