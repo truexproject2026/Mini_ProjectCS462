@@ -12,7 +12,7 @@ interface DrawingCanvasProps {
 
 export default function DrawingCanvas({ 
   onCanvasExport, 
-  width = 500, 
+  width = 700, 
   height = 500,
   className = "canvas-index" 
 }: DrawingCanvasProps) {

@@ -132,7 +132,7 @@ export default function Home() {
           </div>
 
           <div className="canvas-box">
-            <DrawingCanvas onCanvasExport={setCurrentImage} className="canvas-index" width={500} height={500} />
+            <DrawingCanvas onCanvasExport={setCurrentImage} className="canvas-index" width={700} height={500} />
           </div>
 
           <div className="btn-group">

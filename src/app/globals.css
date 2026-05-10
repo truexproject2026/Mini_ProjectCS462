@@ -151,7 +151,7 @@ body {
 
 .canvas-index, .canvas-dataset {
     width: 100% !important;
-    max-width: 500px; /* Increased from 400px */
+    max-width: 700px; /* Increased from 500px */
     height: auto !important;
     aspect-ratio: 1/1;
     background: white;
