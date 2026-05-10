@@ -15,7 +15,9 @@ export default function Home() {
 
   const fetchMetrics = async () => {
     try {
-      const res = await fetch('/api/metrics');
+      // ดึงค่าจาก Render Backend โดยตรง (ผ่าน NEXT_PUBLIC_BACKEND_URL)
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const res = await fetch(`${backendUrl}/metrics`);
       const result = await res.json();
       if (result.status === 'success') {
         setMetrics(result.metrics);

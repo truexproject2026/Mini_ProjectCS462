@@ -7,6 +7,7 @@ import io
 from PIL import Image
 import numpy as np
 import os
+import json
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -26,6 +27,7 @@ app.add_middleware(
 # 1. การโหลดโมเดล
 # ---------------------------------------------------------
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "current_model.pkl")
+METRICS_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "metrics.json")
 model = None
 
 def load_model():
@@ -112,6 +114,17 @@ async def upload_model(file: UploadFile = File(...)):
             return {"status": "error", "message": "โหลดโมเดลใหม่ไม่สำเร็จ"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/metrics")
+async def get_metrics():
+    try:
+        if os.path.exists(METRICS_PATH):
+            with open(METRICS_PATH, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return {"status": "success", "metrics": data}
+        return {"status": "error", "message": "Metrics file not found"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/reload-model")
 async def reload_model():
