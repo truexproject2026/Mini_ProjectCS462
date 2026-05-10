@@ -15,10 +15,34 @@ export default function AboutPage() {
   ];
 
   const technologies = [
-    { name: "Next.js", icon: "fa-globe", label: "Frontend", color: "#3b82f6" },
-    { name: "FastAPI", icon: "fa-terminal", label: "Backend", color: "#10b981" },
-    { name: "Scikit-Learn", icon: "fa-brain", label: "AI Model", color: "#f59e0b" },
-    { name: "Cloudinary", icon: "fa-cloud", label: "Storage", color: "#06b6d4" }
+    { 
+      name: "Next.js", 
+      icon: "fa-globe", 
+      label: "Frontend Framework", 
+      color: "#3b82f6",
+      details: "React Framework ประสิทธิภาพสูง รองรับการทำงานแบบ Client-side Rendering เพื่อ UI ที่ลื่นไหล"
+    },
+    { 
+      name: "FastAPI", 
+      icon: "fa-terminal", 
+      label: "Backend API", 
+      color: "#10b981",
+      details: "Python API Framework ที่มีความเร็วสูง ใช้สำหรับการประมวลผลรูปภาพและเชื่อมต่อกับ Model AI"
+    },
+    { 
+      name: "Scikit-Learn", 
+      icon: "fa-brain", 
+      label: "Machine Learning", 
+      color: "#f59e0b",
+      details: "Library หลักในการเทรนโมเดล ExtraTrees Classifier พร้อมการทำ Data Augmentation"
+    },
+    { 
+      name: "Cloudinary", 
+      icon: "fa-cloud", 
+      label: "Cloud Storage", 
+      color: "#06b6d4",
+      details: "ระบบจัดเก็บรูปภาพ Dataset แบบออนไลน์ เพื่อความคงทนของข้อมูลแทนการเก็บใน Server"
+    }
   ];
 
   return (
@@ -68,108 +92,95 @@ export default function AboutPage() {
         </div>
 
         {/* --- Main Content --- */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', alignItems: 'start' }}>
           
-          {/* Tech Stack Card */}
+          {/* Tech Stack Card - Full Details */}
           <div style={{ background: 'white', borderRadius: '24px', padding: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
             <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <i className="fa-solid fa-microchip" style={{ color: '#6366f1' }}></i>
               Tech Stack
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {technologies.map((tech, i) => (
                 <div key={i} style={{ 
                   background: '#f8fafc', 
-                  padding: '12px', 
+                  padding: '15px', 
                   borderRadius: '16px', 
-                  textAlign: 'center',
                   border: '1px solid #f1f5f9'
                 }}>
-                  <i className={`fa-solid ${tech.icon}`} style={{ fontSize: '18px', color: tech.color, marginBottom: '6px', display: 'block' }}></i>
-                  <div style={{ fontWeight: 800, fontSize: '12px', color: '#1e293b' }}>{tech.name}</div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase' }}>{tech.label}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                    <i className={`fa-solid ${tech.icon}`} style={{ fontSize: '18px', color: tech.color }}></i>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '14px', color: '#1e293b' }}>{tech.name}</div>
+                      <div style={{ fontSize: '9px', color: tech.color, fontWeight: 700, textTransform: 'uppercase' }}>{tech.label}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
+                    {tech.details}
+                  </div>
                 </div>
               ))}
             </div>
-            
+          </div>
+
+          {/* Members Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+            {/* Members Card */}
+            <div style={{ background: 'white', borderRadius: '24px', padding: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <i className="fa-solid fa-users" style={{ color: '#ec4899' }}></i>
+                  ทีมงาน Ramnoi
+                </h2>
+                <span style={{ fontSize: '10px', fontWeight: 800, color: '#cbd5e1' }}>5 MEMBERS</span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {teamMembers.map((member, i) => (
+                  <div 
+                    key={i} 
+                    onMouseEnter={() => setHoveredIndex(i)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    style={{ 
+                      padding: '12px 18px', 
+                      borderRadius: '16px', 
+                      background: hoveredIndex === i ? '#4f46e5' : '#f8fafc',
+                      color: hoveredIndex === i ? 'white' : '#1e293b',
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      border: '1px solid',
+                      borderColor: hoveredIndex === i ? '#4f46e5' : '#f1f5f9',
+                      transform: hoveredIndex === i ? 'translateX(5px)' : 'translateX(0)',
+                      transition: 'all 0.2s ease',
+                      cursor: 'default'
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, fontSize: '14px' }}>{member.name}</span>
+                    <span style={{ 
+                      fontFamily: 'monospace', 
+                      fontSize: '11px', 
+                      opacity: hoveredIndex === i ? 0.9 : 0.4
+                    }}>{member.id}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Core Strategy Mini Card */}
             <div style={{ 
-              marginTop: '20px', 
               background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', 
-              borderRadius: '16px', 
-              padding: '15px', 
+              borderRadius: '24px', 
+              padding: '25px', 
               color: 'white',
               position: 'relative',
               overflow: 'hidden'
             }}>
-              <div style={{ fontWeight: 800, fontSize: '15px', marginBottom: '4px' }}>Core Strategy</div>
-              <p style={{ fontSize: '12px', opacity: 0.9, lineHeight: '1.4' }}>
-                Soft Dilation & 25x Augmentation สำหรับเลข ๓๖-๔๐
+              <i className="fa-solid fa-bolt-lightning" style={{ position: 'absolute', right: '-10px', bottom: '-10px', fontSize: '80px', opacity: 0.1 }}></i>
+              <div style={{ fontWeight: 800, fontSize: '16px', marginBottom: '8px' }}>Core Strategy</div>
+              <p style={{ fontSize: '13px', opacity: 0.9, lineHeight: '1.5' }}>
+                เพิ่มความแม่นยำด้วย Soft Dilation และ Data Augmentation 25 เท่า สำหรับจำแนกเลข ๓๖-๔๐
               </p>
-            </div>
-          </div>
-
-          {/* Members Card */}
-          <div style={{ background: 'white', borderRadius: '24px', padding: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <i className="fa-solid fa-users" style={{ color: '#ec4899' }}></i>
-                ทีมงาน Ramnoi
-              </h2>
-              <span style={{ fontSize: '10px', fontWeight: 800, color: '#cbd5e1' }}>5 MEMBERS</span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {teamMembers.map((member, i) => (
-                <div 
-                  key={i} 
-                  onMouseEnter={() => setHoveredIndex(i)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  style={{ 
-                    padding: '12px 18px', 
-                    borderRadius: '16px', 
-                    background: hoveredIndex === i ? '#4f46e5' : '#f8fafc',
-                    color: hoveredIndex === i ? 'white' : '#1e293b',
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    border: '1px solid',
-                    borderColor: hoveredIndex === i ? '#4f46e5' : '#f1f5f9',
-                    transform: hoveredIndex === i ? 'translateX(5px)' : 'translateX(0)',
-                    transition: 'all 0.2s ease',
-                    cursor: 'default'
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 700, fontSize: '14px' }}>{member.name}</span>
-                  </div>
-                  <span style={{ 
-                    fontFamily: 'monospace', 
-                    fontSize: '11px', 
-                    opacity: hoveredIndex === i ? 0.9 : 0.4
-                  }}>
-                    {member.id}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ 
-              marginTop: '20px', 
-              padding: '12px', 
-              background: '#1e293b', 
-              borderRadius: '16px', 
-              color: 'white', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '12px'
-            }}>
-              <div style={{ width: '32px', height: '32px', background: '#4f46e5', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
-                <i className="fa-solid fa-bullseye"></i>
-              </div>
-              <div>
-                <div style={{ fontSize: '9px', fontWeight: 800, opacity: 0.5, textTransform: 'uppercase' }}>Project Goal</div>
-                <div style={{ fontSize: '12px', fontWeight: 600 }}>Classification: ๓๖ - ๔๐</div>
-              </div>
             </div>
           </div>
 
@@ -179,8 +190,9 @@ export default function AboutPage() {
       
       <style jsx global>{`
         body { margin: 0; padding: 0; }
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           h1 { fontSize: 32px !important; }
+          div[style*="gridTemplateColumns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </main>
