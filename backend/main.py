@@ -9,6 +9,7 @@ import numpy as np
 import os
 import json
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 
 app = FastAPI()
 
@@ -99,8 +100,9 @@ async def predict(input_data: ImageInput):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/upload-model")
-async def upload_model(file: UploadFile = File(...)):
+async def upload_model(file: UploadFile = File(...), metrics_file: Optional[UploadFile] = File(None)):
     try:
+        # 1. จัดการไฟล์โมเดล (.pkl)
         if not file.filename.endswith('.pkl'):
             raise HTTPException(status_code=400, detail="ต้องเป็นไฟล์ .pkl เท่านั้น")
             
@@ -108,8 +110,19 @@ async def upload_model(file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
             
+        # 2. จัดการไฟล์ Metrics (.json) ถ้ามีการส่งมา
+        if metrics_file:
+            if not metrics_file.filename.endswith('.json'):
+                print("--- คำเตือน: ไฟล์ Metrics ไม่ใช่ .json ข้ามการบันทึก ---")
+            else:
+                with open(METRICS_PATH, "wb") as f:
+                    metrics_content = await metrics_file.read()
+                    f.write(metrics_content)
+                print(f"--- บันทึก Metrics ใหม่แล้ว: {metrics_file.filename} ---")
+            
+        # 3. โหลดโมเดลใหม่เข้า Memory
         if load_model():
-            return {"status": "success", "filename": file.filename}
+            return {"status": "success", "filename": file.filename, "has_metrics": metrics_file is not None}
         else:
             return {"status": "error", "message": "โหลดโมเดลใหม่ไม่สำเร็จ"}
     except Exception as e:

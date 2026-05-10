@@ -12,6 +12,7 @@ export default function Home() {
   const [modelStatus, setModelStatus] = useState<string>("current_model.pkl");
   const [metrics, setMetrics] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedMetricsFile, setSelectedMetricsFile] = useState<File | null>(null);
 
   const fetchMetrics = async () => {
     try {
@@ -63,12 +64,21 @@ export default function Home() {
     }
   };
 
+  const handleMetricsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setSelectedMetricsFile(e.target.files[0]);
+    }
+  };
+
   const handleModelUpload = async () => {
-    if (!selectedFile) return alert("กรุณาเลือกไฟล์ก่อน!");
+    if (!selectedFile) return alert("กรุณาเลือกไฟล์โมเดล (.pkl) ก่อน!");
 
     setLoading(true);
     const formData = new FormData();
     formData.append('file', selectedFile);
+    if (selectedMetricsFile) {
+      formData.append('metrics_file', selectedMetricsFile);
+    }
 
     try {
       // 1. ลองดึงค่า URL ของ Backend (ต้องตั้งค่าใน Vercel เป็น NEXT_PUBLIC_BACKEND_URL)
@@ -84,8 +94,9 @@ export default function Home() {
       
       if (result.status === 'success') {
         setModelStatus(selectedFile.name);
-        alert("อัปโหลดโมเดลสำเร็จ!");
-        fetchMetrics();
+        alert(`อัปโหลดสำเร็จ! ${result.has_metrics ? "พร้อมอัปเดต Metrics แล้ว" : ""}`);
+        fetchMetrics(); // โหลด Metrics ใหม่ทันที
+        setSelectedMetricsFile(null); // เคลียร์ไฟล์หลังจากอัปโหลด
       } else {
         alert("การอัปโหลดล้มเหลว: " + (result.message || "ไม่ทราบสาเหตุ"));
       }
@@ -168,8 +179,17 @@ export default function Home() {
             <div className="upload-icon"><i className="fa-solid fa-file-arrow-up"></i></div>
             <div className="upload-model">
               <h3>{selectedFile ? selectedFile.name : "Upload New Model"}</h3>
-              <p>รองรับไฟล์ .pkl</p>
+              <p>เลือกไฟล์โมเดล (.pkl)</p>
               <input type="file" className="input-type" onChange={handleFileChange} accept=".pkl" />
+            </div>
+          </div>
+
+          <div className="upload-box" style={{marginTop: '10px', opacity: selectedFile ? 1 : 0.5}}>
+            <div className="upload-icon" style={{backgroundColor: '#e2e8f0', color: '#64748b'}}><i className="fa-solid fa-chart-line"></i></div>
+            <div className="upload-model">
+              <h3>{selectedMetricsFile ? selectedMetricsFile.name : "Upload Metrics (Optional)"}</h3>
+              <p>เลือกไฟล์สถิติ (.json)</p>
+              <input type="file" className="input-type" onChange={handleMetricsFileChange} accept=".json" disabled={!selectedFile} />
             </div>
           </div>
 
