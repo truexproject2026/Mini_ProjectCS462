@@ -33,8 +33,8 @@ export default function DrawingCanvas({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // ตั้งค่าปากกา
-    ctx.lineWidth = 18;      // ความหนาเส้น
+    // ตั้งค่าปากกา (V5 Update: เพิ่มความหนาเป็น 28 เพื่อให้ AI เห็น Feature ชัดขึ้น)
+    ctx.lineWidth = 28;      // ความหนาเส้น
     ctx.lineCap = 'round';   // ปลายเส้นมน
     ctx.strokeStyle = '#000000'; // สีดำ
 
