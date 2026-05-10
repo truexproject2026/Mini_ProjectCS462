@@ -184,70 +184,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="upload-box" style={{marginTop: '10px', opacity: selectedFile ? 1 : 0.5}}>
-            <div className="upload-icon" style={{backgroundColor: '#e2e8f0', color: '#64748b'}}><i className="fa-solid fa-chart-line"></i></div>
-            <div className="upload-model">
-              <h3>{selectedMetricsFile ? selectedMetricsFile.name : "Upload Metrics (Optional)"}</h3>
-              <p>เลือกไฟล์สถิติ (.json)</p>
-              <input type="file" className="input-type" onChange={handleMetricsFileChange} accept=".json" disabled={!selectedFile} />
-            </div>
-          </div>
-
           <div className="btn-group-column">
             <button className="upload-btn" onClick={handleModelUpload} disabled={loading || !selectedFile}>
               <i className="fa-solid fa-upload" style={{marginRight: '8px'}}></i>
               {loading ? "Uploading..." : "Upload & Update"}
             </button>
-            
-            {/* Minimal Metrics Section */}
-            <div className="metrics-section">
-              <div className="metrics-title"><Activity size={14} /> Evaluation Metrics</div>
-              {metrics ? (
-                <>
-                  <div className="metrics-grid">
-                    {[
-                      { label: 'Acc', value: metrics.accuracy },
-                      { label: 'F1', value: metrics.f1_score },
-                      { label: 'Prec', value: metrics.precision },
-                      { label: 'Recall', value: metrics.recall },
-                    ].map((item) => (
-                      <div key={item.label} className="metric-card">
-                        <p className="metric-label">{item.label}</p>
-                        <p className="metric-value">{(item.value * 100).toFixed(1)}%</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {metrics.confusion_matrix && (
-                    <div className="matrix-container">
-                      <div className="metrics-title" style={{marginBottom: '5px'}}><Table size={12} /> Error Analysis</div>
-                      <table className="matrix-table">
-                        <thead>
-                          <tr>
-                            <th></th>
-                            {metrics.labels.map((l: string) => <th key={l}>{l}</th>)}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {metrics.confusion_matrix.map((row: number[], i: number) => (
-                            <tr key={i}>
-                              <td className="matrix-label">{metrics.labels[i]}</td>
-                              {row.map((cell, j) => (
-                                <td key={j} className={i === j ? 'cell-diag' : cell > 0 ? 'cell-error' : 'cell-zero'}>
-                                  {cell}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <p style={{fontSize: '10px', color: '#94a3b8', textAlign: 'center'}}>Run training to see data</p>
-              )}
-            </div>
           </div>
         </div>
       </div>
