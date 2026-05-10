@@ -31,6 +31,12 @@ export default function Navbar() {
         >
           <i className="fa-solid fa-folder-plus"></i> Collect Data
         </Link>
+        <Link 
+          href="/about" 
+          className={`nav-btn ${pathname === '/about' ? 'active-nav' : ''}`}
+        >
+          <i className="fa-solid fa-users"></i> About Us
+        </Link>
       </div>
     </nav>
   );
