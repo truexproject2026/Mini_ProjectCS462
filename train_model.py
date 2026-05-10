@@ -4,7 +4,7 @@ from PIL import Image, ImageOps, ImageFilter
 import pickle
 import joblib
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, confusion_matrix
 import json
 import random
@@ -20,14 +20,12 @@ LABELS = ["๓๖", "๓๗", "๓๘", "๓๙", "๔๐"]
 
 def preprocess_image(image):
     """
-    ฟังก์ชันปรับแต่งภาพระดับสูง:
-    - หาขอบเขตและจัดกึ่งกลาง
-    - ทำ Thresholding (ทำให้เป็นขาวดำสนิท)
+    V3 Update: เพิ่มการเบ่งเส้น (Dilation) เพื่อให้หางเลข 38/39 ชัดขึ้น
     """
     # 1. แปลงเป็น Grayscale
     img = image.convert('L')
     
-    # 2. Centering: หาขอบเขตตัวเลขและวางกึ่งกลาง
+    # 2. Centering: หาขอบเขตตัวเลข
     img_array = np.array(img)
     inverted_img = 255 - img_array
     coords = np.column_stack(np.where(inverted_img > 40)) 
@@ -38,17 +36,21 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        # เพิ่มขอบเป็น 10 พิกเซล เพื่อให้หางเลข ๓๘, ๓๙ ไม่โดนตัด
-        size = max(w, h) + 10
+        # เพิ่มขอบ (Padding) 12 พิกเซล เพื่อให้หางไม่ติดขอบเกินไป
+        size = max(w, h) + 12
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         img = new_img.resize(IMG_SIZE, Image.Resampling.LANCZOS)
     else:
         img = img.resize(IMG_SIZE)
 
-    # 3. Binary Thresholding: ทำให้เป็นขาวดำสนิท (ปรับเข้มขึ้นเป็น 190)
-    fn = lambda x : 255 if x > 190 else 0
+    # 3. Binary Thresholding (ปรับให้เส้นติดง่ายขึ้น)
+    fn = lambda x : 255 if x > 170 else 0
     img = img.point(fn, mode='L')
+    
+    # 4. V3 Special: ทำ Dilation (เพิ่มความหนาเส้น) เพื่อให้ AI เห็น Feature ชัดขึ้น
+    # ใช้ MaxFilter เพื่อขยายสีดำ (ซึ่งในที่นี้คือเส้น)
+    img = img.filter(ImageFilter.MinFilter(3)) 
     
     return img
 
@@ -60,9 +62,8 @@ def load_dataset():
     X = []
     y = []
     
-    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (Augmentation) ---")
+    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V3: Dilation Enabled) ---")
     
-    # นับจำนวนรูปภาพในแต่ละคลาส
     class_counts = {}
     for label in LABELS:
         label_dir = os.path.join(DATASET_DIR, label)
@@ -83,11 +84,8 @@ def load_dataset():
                     raw_img = Image.open(img_path)
                     clean_img = preprocess_image(raw_img)
                     
-                    # ปรับ Augmentation ตามความยากและจำนวนข้อมูล
-                    if label in ["๓๘", "๓๙", "๔๐"]:
-                        aug_count = 25 
-                    else:
-                        aug_count = 12 
+                    # ๓๘ และ ๓๙ ยังเป็นปัญหาหลัก ปั๊มเพิ่มเยอะๆ
+                    aug_count = 25 if label in ["๓๘", "๓๙"] else 15
                     
                     variants = []
                     variants.append(clean_img) 
@@ -97,8 +95,7 @@ def load_dataset():
                         choice = random.choice(['rotate', 'shift', 'both', 'zoom'])
                         
                         if choice in ['rotate', 'both']:
-                            # เลข 38/39 ไม่ควรหมุนเยอะเกินไปเดี๋ยวหางเพี้ยน
-                            angle = random.uniform(-10, 10)
+                            angle = random.uniform(-12, 12)
                             v = v.rotate(angle, fillcolor=255)
                         
                         if choice in ['shift', 'both']:
@@ -120,7 +117,7 @@ def load_dataset():
                     
                     for v in variants:
                         img_array = np.array(v).astype('float32') / 255.0
-                        img_array = 1.0 - img_array # เส้น=1, พื้น=0
+                        img_array = 1.0 - img_array
                         X.append(img_array.flatten())
                         y.append(label)
                         
@@ -139,27 +136,20 @@ def train():
 
     print(f"จำนวนข้อมูลรวมหลัง Augmentation: {len(X)} รูป")
 
-    # 1. การแบ่งข้อมูล
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # 2. การสร้างโมเดล (ปรับจูนให้ฉลาดขึ้น แต่ยังคุม RAM)
-    # เพิ่ม n_estimators เป็น 300 และ max_depth เป็น 35
-    model = RandomForestClassifier(
-        n_estimators=300, 
-        max_depth=35,
-        min_samples_leaf=2,
+    # 2. การสร้างโมเดล (V3: ExtraTrees แบบ Sharp แต่จำนวนน้อยเพื่อคุม RAM)
+    # ExtraTrees มักจะให้ค่า Confidence ที่มั่นใจกว่า RF ในงานแบบนี้
+    model = ExtraTreesClassifier(
+        n_estimators=150, 
+        max_depth=40,
+        min_samples_leaf=1,
         class_weight='balanced',
         random_state=42,
         n_jobs=-1
     )
     
-    # 3. Cross-validation
-    print("--- กำลังทำ Cross-validation (5-Fold)... ---")
-    cv_scores = cross_val_score(model, X, y, cv=5)
-    print(f"Cross-validation Accuracy: {cv_scores.mean():.4f}")
-
-    # 4. การเทรนโมเดลจริง
-    print("--- กำลังเทรนโมเดล... ---")
+    print("--- กำลังเทรนโมเดล V3... ---")
     model.fit(X_train, y_train)
 
     # 5. ประเมินผล
