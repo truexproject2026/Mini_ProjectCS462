@@ -8,10 +8,16 @@ import { Save, Trash2, Lightbulb, Fingerprint, Database } from 'lucide-react';
 export default function CollectData() {
   const [currentImage, setCurrentImage] = useState<string>("");
   const [selectedLabel, setSelectedLabel] = useState<string>("๓๖");
+  const [brushSize, setBrushSize] = useState<number>(20); // Default to match home page
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
   const labels = ["๓๖", "๓๗", "๓๘", "๓๙", "๔๐"];
+  const brushOptions = [
+    { label: 'เส้นบาง', size: 12, icon: 'fa-pencil' },
+    { label: 'ปกติ', size: 20, icon: 'fa-pen' },
+    { label: 'เส้นหนา', size: 30, icon: 'fa-pen-nib' }
+  ];
 
   const handleSave = async () => {
     if (!currentImage) return alert("กรุณาวาดตัวเลขก่อน!");
@@ -80,12 +86,40 @@ export default function CollectData() {
           ))}
         </div>
 
+        {/* --- Brush Size Selection --- */}
+        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center' }}>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b' }}>ความหนาปากกา:</span>
+          <div style={{ display: 'flex', background: '#f1f5f9', padding: '4px', borderRadius: '12px', gap: '4px' }}>
+            {brushOptions.map((opt) => (
+              <button
+                key={opt.size}
+                onClick={() => setBrushSize(opt.size)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  background: brushSize === opt.size ? '#ffffff' : 'transparent',
+                  color: brushSize === opt.size ? '#4f46e5' : '#64748b',
+                  boxShadow: brushSize === opt.size ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                }}
+              >
+                <i className={`fa-solid ${opt.icon}`} style={{ marginRight: '6px' }}></i>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="container" style={{ gridTemplateColumns: '1.4fr 0.6fr' }}>
           
           {/* --- Drawing Column --- */}
           <div className="space-y-4">
             <div className="card" style={{ padding: '10px', display: 'flex', justifyContent: 'center', background: '#f8fafc' }}>
-              <DrawingCanvas onCanvasExport={setCurrentImage} width={450} height={350} />
+              <DrawingCanvas onCanvasExport={setCurrentImage} width={450} height={350} lineWidth={brushSize} />
             </div>
 
             <div className="btn-group">

@@ -7,6 +7,7 @@ interface DrawingCanvasProps {
   onCanvasExport: (dataUrl: string) => void; 
   width?: number;  
   height?: number; 
+  lineWidth?: number; // Add lineWidth prop
   className?: string; // Add className prop
 }
 
@@ -14,6 +15,7 @@ export default function DrawingCanvas({
   onCanvasExport, 
   width = 450, 
   height = 350,
+  lineWidth = 20, // Default to 20
   className = "canvas-index" 
 }: DrawingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -33,15 +35,15 @@ export default function DrawingCanvas({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // ตั้งค่าปากกา (Compact Redesign: ปรับเป็น 20 เพื่อความสมดุล)
-    ctx.lineWidth = 20;      // ความหนาเส้น
+    // ตั้งค่าปากกา (Compact Redesign)
+    ctx.lineWidth = lineWidth;      // ใช้ค่าจาก Props
     ctx.lineCap = 'round';   // ปลายเส้นมน
     ctx.strokeStyle = '#000000'; // สีดำ
 
     // เติมพื้นหลังสีขาว (เพื่อให้ AI ประมวลผลได้ดีกว่าพื้นหลังใส)
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, []);
+  }, [lineWidth]); // Re-run when lineWidth changes
 
   // ฟังก์ชันคำนวณตำแหน่งเมาส์/นิ้ว บน Canvas
   const getPos = (e: React.MouseEvent | React.TouchEvent) => {
