@@ -2,10 +2,10 @@
 คู่มือการติดตั้งระบบออนไลน์ (Vercel + Render + Cloudinary)
 =====================================================
 
-โปรเจคนี้ใช้โครงสร้างแบบ Hybrid Cloud เพื่อรองรับ Machine Learning:
-1. Frontend (Next.js) -> ฝากที่ Vercel
-2. Backend (FastAPI) -> ฝากที่ Render.com
-3. Dataset Storage   -> ฝากที่ Cloudinary (เก็บรูปถาวร)
+โปรเจคนี้ใช้โครงสร้างแบบ Hybrid Cloud เพื่อรองรับ Machine Learning (V8.1):
+1. Frontend (Next.js) -> ฝากที่ Vercel (https://mini-pj-online.vercel.app/)
+2. Backend (FastAPI) -> ฝากที่ Render.com (https://mini-projectcs462.onrender.com)
+3. Dataset Storage   -> ฝากที่ Cloudinary (เก็บรูปภาพถาวร)
 
 -----------------------------------------------------
 ขั้นตอนที่ 1: ตั้งค่า Cloudinary (สำหรับเก็บรูป Dataset)
@@ -15,7 +15,7 @@
    - Cloud Name
    - API Key
    - API Secret (กดปุ่มรูปดวงตาเพื่อดู)
-3. ค่าเหล่านี้จะถูกใช้เป็น Environment Variables ใน Vercel
+3. สร้าง Folder ชื่อ ๓๖, ๓๗, ๓๘, ๓๙, ๔๐ ไว้ใน Cloudinary (ถ้าต้องการจัดระเบียบ)
 
 -----------------------------------------------------
 ขั้นตอนที่ 2: ตั้งค่า Backend ไปที่ Render.com
@@ -23,12 +23,13 @@
 1. สมัครสมาชิก Render.com และเชื่อมต่อ GitHub
 2. กด "New" > "Web Service" เลือก Repository ของคุณ
 3. ตั้งค่าดังนี้:
-   - Name: (ตามต้องการ เช่น thai-handwriting-api)
+   - Name: thai-handwriting-api
    - Runtime: Python 3
    - Root Directory: thai-handwriting-next
    - Build Command: pip install -r backend/requirements.txt
    - Start Command: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
 4. กด Deploy และก๊อปปี้ URL ของ Backend มา (เช่น https://...onrender.com)
+*หมายเหตุ: Render Free Tier จะมีการ Cold Start (รอประมาณ 30-60 วินาทีในการเรียกใช้ครั้งแรก)*
 
 -----------------------------------------------------
 ขั้นตอนที่ 3: ตั้งค่า Frontend ไปที่ Vercel
@@ -44,14 +45,15 @@
 4. กด Deploy
 
 -----------------------------------------------------
-ขั้นตอนที่ 4: การอัปเดตโมเดลแบบ Real-time
+ขั้นตอนที่ 4: การอัปเดตโมเดลแบบ Real-time (V8.1)
 -----------------------------------------------------
-- คุณสามารถอัปเดตโมเดลได้ทันทีผ่านหน้า Admin ในเว็บออนไลน์
-- เลือกไฟล์ .pkl แล้วกด "Upload & Update"
-- ระบบจะส่งไฟล์ตรงไปที่ Render และโหลดเข้าหน่วยความจำทันที
-- หมายเหตุ: การอัปโหลดผ่านเว็บเป็นค่าชั่วคราว หากต้องการเปลี่ยนถาวรต้อง Commit ลง GitHub
+- เข้าหน้าเว็บไปที่ส่วนของ Admin
+- คุณสามารถอัปโหลดโมเดลใหม่ (`.pkl`) และไฟล์ Metrics (`.json`) ได้ทันที
+- ระบบจะส่งไฟล์ตรงจาก Browser ไปที่ Render Backend และโหลดเข้า Memory ทันที
+- **ข้อควรระวัง:** การอัปโหลดผ่านหน้าเว็บเป็นการเปลี่ยนค่าในหน่วยความจำ (Temporary) หาก Render รีสตาร์ทจะกลับไปใช้ไฟล์ใน GitHub ดังนั้นหากต้องการเปลี่ยนถาวรต้อง Commit ไฟล์ลง GitHub ด้วย
 
 =====================================================
 โปรเจควิชา CS462 Data Analytics and Mining
-สถานะปัจจุบัน: ออนไลน์สมบูรณ์ (Predict + Collect + Real-time Update)
+สถานะปัจจุบัน: V8.1 ออนไลน์สมบูรณ์ (Predict + Collect + Real-time Update)
+ความแม่นยำล่าสุด: 96.36% (ExtraTrees Model)
 =====================================================

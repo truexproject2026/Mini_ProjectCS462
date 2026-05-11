@@ -1,6 +1,6 @@
-# ระบบทำนายลายมือตัวเลขไทย (๓๖ - ๔๐) ด้วย Machine Learning
+# ระบบทำนายลายมือตัวเลขไทย (๓๖ - ๔๐) ด้วย Machine Learning (V8.1)
 
-โปรเจค Full-stack Machine Learning สำหรับจำแนกและเก็บรวบรวมลายมือตัวเลขไทย (๓๖-๔๐) พัฒนาด้วยสถาปัตยกรรม Hybrid-cloud โดยใช้ Next.js, FastAPI และโมเดล Random Forest
+โปรเจค Full-stack Machine Learning สำหรับจำแนกและเก็บรวบรวมลายมือตัวเลขไทย (๓๖-๔๐) พัฒนาด้วยสถาปัตยกรรม Hybrid-cloud โดยใช้ Next.js, FastAPI และโมเดล ExtraTrees (V8.1)
 
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://mini-pj-online.vercel.app/)
 [![Backend](https://img.shields.io/badge/backend-FastAPI-blue)](https://mini-projectcs462.onrender.com/docs)
@@ -10,11 +10,11 @@
 
 ## คุณสมบัติหลัก (Key Features)
 
-- **ระบบทำนายผล:** ทำนายลายมือตัวเลขไทยแบบ Real-time ด้วยโมเดล Random Forest ที่มีความแม่นยำสูง
-- **ระบบเก็บข้อมูล Dataset:** ส่วนประสานงานสำหรับวาดและบันทึกตัวอย่างลายมือใหม่ลงสู่ Cloudinary เพื่อสะสมข้อมูลสำหรับการเทรนในอนาคต
-- **การอัปเดตโมเดล:** หน้าจอส่วนผู้ดูแลระบบสำหรับการอัปโหลดไฟล์โมเดล (.pkl) และเปลี่ยนการทำงานของระบบได้ทันทีโดยไม่ต้องรีสตาร์ทเซิร์ฟเวอร์
-- **การรองรับอุปกรณ์:** ออกแบบมาให้ใช้งานได้สมบูรณ์ทั้งบนคอมพิวเตอร์ แท็บเล็ต และโทรศัพท์มือถือ
-- **สถาปัตยกรรมระบบ:** แยกส่วนการทำงานระหว่าง Frontend (Vercel) และ Backend (Render) เพื่อความเสถียรของระบบ
+- **ระบบทำนายผล V8.1:** ทำนายลายมือตัวเลขไทยแบบ Real-time ด้วยโมเดล ExtraTrees ที่มีความแม่นยำสูง (Accuracy: 96.36%)
+- **ระบบเก็บข้อมูล Dataset (Cloudinary):** บันทึกตัวอย่างลายมือใหม่ลงสู่ Cloudinary โดยตรง เพื่อแก้ปัญหาการเก็บไฟล์บน Vercel และสะสมข้อมูลสำหรับการเทรนในอนาคต
+- **การอัปเดตโมเดล (Admin Dashboard):** หน้าจอส่วนผู้ดูแลระบบสำหรับการอัปโหลดไฟล์โมเดล (.pkl) และ Metrics (.json) เพื่อเปลี่ยนการทำงานของระบบได้ทันทีโดยไม่ต้อง Deploy ใหม่
+- **การรองรับอุปกรณ์:** รองรับทั้ง Mouse และ Touch สำหรับการวาดบน Canvas
+- **สถาปัตยกรรมระบบ:** แยกส่วน Frontend (Vercel) และ Backend (Render) เพื่อประสิทธิภาพและความเสถียร
 
 ---
 
@@ -24,8 +24,8 @@
 | :--- | :--- |
 | **Frontend** | Next.js 15 (React, TypeScript, Tailwind CSS) |
 | **AI Backend** | FastAPI (Python 3.12+) |
-| **Machine Learning** | Scikit-learn, NumPy, PIL (Pillow) |
-| **Cloud Storage** | Cloudinary (Persistent Cloud Storage) |
+| **Machine Learning** | Scikit-learn (ExtraTreesClassifier), NumPy, PIL |
+| **Cloud Storage** | Cloudinary (Persistent Image Storage) |
 | **Deployment** | Vercel (Frontend) & Render.com (Backend) |
 
 ---
@@ -36,20 +36,32 @@
 graph LR
     User((ผู้ใช้งาน)) -->|วาดตัวเลข| Vercel[Next.js Frontend - Vercel]
     Vercel -->|ส่งคำขอทำนาย| Render[FastAPI Backend - Render]
-    Render -->|รันโมเดล| Result[ผลทำนาย + ค่าความเชื่อมั่น]
+    Render -->|รันโมเดล V8.1| Result[ผลทำนาย + Confidence Score]
     Vercel -->|บันทึกตัวอย่าง| Cloudinary[Cloudinary Storage]
-    Admin[ผู้ดูแลระบบ] -->|อัปโหลด .pkl| Render
-    Render -->|โหลดเข้า Memory| Memory[(Model ตัวใหม่)]
+    Admin[ผู้ดูแลระบบ] -->|อัปโหลด .pkl / .json| Render
+    Render -->|Reload Memory| Memory[(Active Model)]
 ```
+
+---
+
+## รายละเอียดทางเทคนิค (Machine Learning V8.1)
+
+1. **Preprocessing (V8.1 Optimization):** 
+   - **Grayscale Conversion:** แปลงภาพเป็นระบบสีเทา
+   - **Centering & Bounding Box:** จัดกึ่งกลางตัวเลข
+   - **Padding 8px:** ปรับลด Padding เพื่อให้ตัวเลขมีขนาดใหญ่ขึ้น (ชัดเจนขึ้นสำหรับ AI)
+   - **Thresholding:** ทำ Binary Thresholding (ปิด Dilation เพื่อรักษาหัวเลข ๓๖)
+2. **Model:** ExtraTreesClassifier (Accuracy: 96.36%)
+3. **Dataset:** เพิ่มข้อมูลเลข **๓๖** เป็น 285 รูป เพื่อแก้ปัญหา Data Imbalance
 
 ---
 
 ## การติดตั้งเพื่อใช้งาน (Local Development)
 
 ### 1. ความต้องการของระบบ
-- Node.js 18 ขึ้นไป
-- Python 3.9 ขึ้นไป
-- บัญชี Cloudinary
+- Node.js 18+
+- Python 3.9+
+- Cloudinary Account
 
 ### 2. การตั้งค่า Backend (Python)
 ```powershell
@@ -65,41 +77,21 @@ python main.py
 npm install
 npm run dev
 ```
-สร้างไฟล์ .env.local และกำหนดค่าดังนี้:
+สร้างไฟล์ `.env.local`:
 ```text
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
-CLOUDINARY_CLOUD_NAME=ชื่อ_cloud_ของคุณ
-CLOUDINARY_API_KEY=api_key_ของคุณ
-CLOUDINARY_API_SECRET=api_secret_ของคุณ
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
-
----
-
-## โครงสร้างโปรเจค
-
-- `backend/`: ส่วนการทำงานของ FastAPI และตรรกะของ AI
-- `src/app/`: โครงสร้างหน้าเว็บ Next.js (App Router)
-- `src/components/`: ส่วนประกอบของอินเตอร์เฟส (Drawing Canvas)
-- `models/`: แหล่งเก็บไฟล์โมเดล (.pkl) และข้อมูลทางสถิติ
-- `dataset/`: โฟลเดอร์เก็บข้อมูลภาพตัวอย่าง
-
----
-
-## รายละเอียดทางเทคนิค (Machine Learning)
-
-1. **Preprocessing (การเตรียมข้อมูล):** 
-   - การแปลงภาพเป็นระบบสีเทา (Grayscale)
-   - การจัดกึ่งกลางและตัดขอบเขตตัวเลข (Centering & Bounding Box)
-   - การปรับขนาดภาพเป็น 28x28 พิกเซล
-   - การทำ Binary Thresholding เพื่อเพิ่มความคมชัดของเส้น
-2. **Model:** Random Forest Classifier (100 estimators)
-3. **Accuracy:** ประมาณ 90% (ขึ้นอยู่กับชุดข้อมูลที่ใช้เทรน)
 
 ---
 
 ## เอกสารอ้างอิง
 
-- [คู่มือการติดตั้งออนไลน์](./DEPLOYMENT_GUIDE_TH.txt)
+- [คู่มือการติดตั้งออนไลน์ (Vercel + Render)](./DEPLOYMENT_GUIDE_TH.txt)
+- [วิธีใช้งานระบบเบื้องต้น](./HOW_TO_USE_TH.txt)
 
 ---
 **โปรเจควิชา CS462 Data Analytics and Mining**
+*Last Updated: 2026-05-11 | Status: V8.1 Online*

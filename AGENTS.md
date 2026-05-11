@@ -8,24 +8,24 @@
 ## 🏗️ System Architecture
 
 ### 1. Frontend (Next.js 15)
-- **Tech Stack:** React, Tailwind CSS, Lucide Icons
+- **Tech Stack:** React, Tailwind CSS, Lucide Icons, Cloudinary SDK
 - **Key Features:**
     - **Canvas Drawing:** ระบบวาดภาพลายมือที่รองรับทั้ง Mouse และ Touch
     - **Prediction Interface:** แสดงผลทำนายพร้อมค่าความเชื่อมั่น (Confidence Score)
-    - **Data Collection:** ระบบเก็บตัวอย่างลายมือเพื่อสร้าง Dataset
-    - **Admin Dashboard:** สำหรับอัปโหลดโมเดลและดู Metrics (Accuracy, Precision, etc.)
+    - **Data Collection:** ระบบเก็บตัวอย่างลายมือ อัปโหลดตรงไปที่ **Cloudinary**
+    - **Admin Dashboard:** สำหรับอัปโหลดโมเดลและดู Metrics (Accuracy, Precision, etc.) แบบ Real-time
 
 ### 2. ML Backend (FastAPI / Python)
-- **Tech Stack:** FastAPI, Scikit-learn, Pillow, Numpy
+- **Tech Stack:** FastAPI, Scikit-learn, Pillow, Numpy, python-multipart
 - **Core Logic:**
-    - **Preprocessing:** การจัดการรูปภาพ (Grayscale -> Centering -> Inversion -> Normalization) เพื่อให้ AI ประมวลผลได้แม่นยำ
-    - **Prediction:** ใช้โมเดล **Random Forest** ในการจำแนกตัวเลข
-    - **API Endpoints:** `/predict` (ทำนาย), `/reload-model` (โหลดโมเดลใหม่ทันที)
+    - **Preprocessing V8.1:** (Grayscale -> Centering -> Padding 8px -> Thresholding) ปรับจูนเพื่อรองรับลายมือจริง
+    - **Prediction:** ใช้โมเดล **ExtraTreesClassifier** (V8.1 Accuracy: 96.36%)
+    - **API Endpoints:** `/predict` (ทำนาย), `/upload-model` (อัปเดตโมเดลและ Metrics ทันที)
 
 ### 3. Data & Model
-- **Storage:** รูปภาพที่วาดจะถูกเก็บใน `dataset/` (Local) และอัปโหลดขึ้น **Google Drive** (ผ่าน Service Account)
+- **Storage:** รูปภาพที่วาดถูกเก็บแบบถาวรบน **Cloudinary** (แทนที่ Google Drive เดิม)
 - **Model File:** บันทึกเป็น `models/current_model.pkl`
-- **Training Pipeline:** ใช้ `train_model.py` ในการเทรนใหม่เมื่อมีข้อมูลเพิ่มขึ้น
+- **Dataset Expansion:** เน้นการเพิ่มข้อมูลเลข **๓๖** (ปัจจุบันมี 285 รูป) เพื่อความสมดุล
 
 ---
 
@@ -36,13 +36,13 @@
     - เปิด Frontend: `npm run dev` (Port 3000)
 
 2. **การพัฒนาความแม่นยำ:**
-    - วาดตัวเลขเพิ่มในเมนู **"Dataset"** เพื่อสะสมข้อมูล
-    - รัน `python train_model.py` เพื่ออัปเดตโมเดล
-    - ระบบจะรีโหลดโมเดลใหม่ให้อัตโนมัติ (ไม่ต้อง Restart Backend)
+    - วาดตัวเลขเพิ่มในหน้า **"Dataset"** เพื่อสะสมข้อมูลเข้า Cloudinary
+    - รัน `python train_model.py` เพื่อฝึกสอนโมเดลใหม่
+    - อัปโหลดไฟล์ที่ได้ผ่านหน้าเว็บ (Admin) เพื่อใช้งานทันที
 
 3. **ข้อควรระวัง:**
-    - ตรวจสอบสิทธิ์ Google Drive ใน `google-credentials.json` หากการอัปโหลด Dataset ล้มเหลว
-    - ไฟล์ `.env.local` ต้องมี `BACKEND_URL=http://localhost:8000`
+    - ไฟล์ `.env.local` ต้องมีค่า Config ของ Cloudinary และ URL ของ Backend ที่ถูกต้อง
+    - การเทรนโมเดลใช้หน่วยความจำสูง (Optimized ใน V7+ ให้รันบน Render Free Tier ได้)
 
 ---
-*บันทึกโดย Gemini CLI - 8 พฤษภาคม 2026*
+*บันทึกโดย Gemini CLI - 11 พฤษภาคม 2026 (Model V8.1 Update)*
