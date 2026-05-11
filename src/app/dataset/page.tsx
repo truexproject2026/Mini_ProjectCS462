@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import DrawingCanvas from '@/components/DrawingCanvas';
 import Navbar from '@/components/Navbar';
-import { Save, Trash2, Lightbulb, Fingerprint, Database, Download } from 'lucide-react';
+import { Save, Trash2, Lightbulb, Fingerprint, Database, Download, ExternalLink } from 'lucide-react';
 
 export default function CollectData() {
   const [currentImage, setCurrentImage] = useState<string>("");
@@ -198,6 +198,22 @@ export default function CollectData() {
             >
               <Download size={18} style={{ marginRight: '8px' }} />
               Download Latest Dataset
+            </button>
+
+            <button 
+              onClick={() => window.open('https://drive.google.com/drive/folders/1xJnM2Jw9gkFWNW5ziXPfY8kxUypV-ECo?usp=sharing', '_blank')}
+              className="predict-btn"
+              style={{ 
+                width: '100%',
+                background: '#ffffff', 
+                color: '#1e40af',
+                border: '1px solid #dbeafe',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                marginTop: '10px'
+              }}
+            >
+              <ExternalLink size={18} style={{ marginRight: '8px' }} />
+              Google Drive Dataset
             </button>
           </div>
 
