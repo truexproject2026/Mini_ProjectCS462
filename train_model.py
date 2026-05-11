@@ -1,11 +1,48 @@
+import sys
 import os
+import types
+
+# --- EMERGENCY WORKAROUND FOR CORRUPTED PYTHON ENVIRONMENT ---
+# This system has Null Byte corruption in core libraries (asyncio, email, etc.)
+# and is missing distutils (Python 3.14). We must mock these to allow imports.
+
+def apply_workarounds():
+    site_packages = os.path.join(os.path.dirname(sys.executable), "Lib", "site-packages")
+    if site_packages not in sys.path:
+        sys.path.append(site_packages)
+    
+    # Mock modules that are corrupted or missing
+    broken_modules = [
+        "asyncio", "asyncio.windows_events", "asyncio.windows_utils",
+        "distutils", "distutils.version", "email", "email.headerregistry"
+    ]
+    for mod_name in broken_modules:
+        if mod_name not in sys.modules:
+            m = types.ModuleType(mod_name)
+            sys.modules[mod_name] = m
+            if mod_name == "distutils":
+                m.concurrency_safe_rename = lambda x, y: os.rename(x, y)
+
+    # Force joblib.Parallel to be a simple sequential loop to bypass AST issues
+    try:
+        import joblib
+        class SequentialParallel:
+            def __init__(self, *args, **kwargs): pass
+            def __call__(self, iterable):
+                return [func(*args, **kwargs) for func, args, kwargs in iterable]
+        joblib.Parallel = SequentialParallel
+    except:
+        pass
+
+apply_workarounds()
+# -------------------------------------------------------------
+
 import numpy as np
-from PIL import Image, ImageOps, ImageFilter
-import pickle
+from PIL import Image
 import joblib
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, f1_score, classification_report
 import json
 import random
 
@@ -60,7 +97,7 @@ def load_dataset():
     X = []
     y = []
     
-    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V6: Crisp Loops) ---")
+    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V7: Memory Optimized) ---")
     
     for label in LABELS:
         label_dir = os.path.join(DATASET_DIR, label)
@@ -73,29 +110,26 @@ def load_dataset():
                     raw_img = Image.open(img_path)
                     clean_img = preprocess_image(raw_img)
                     
-                    # ปรับสมดุล Augmentation 
-                    aug_count = 25 if label in ["๓๘", "๓๙"] else 15
+                    # V7: ลด Augmentation ลงเนื่องจากรูปจริงเพิ่มขึ้นมากแล้ว 
+                    # เพื่อป้องกันปัญหา RAM เต็มบน Render (Limit 512MB)
+                    aug_count = 5 if label in ["๓๘", "๓๙"] else 3
                     
-                    variants = []
-                    variants.append(clean_img) 
+                    variants = [clean_img]
                     
                     for _ in range(aug_count - 1):
                         v = clean_img
-                        choice = random.choice(['rotate', 'shift', 'both', 'zoom'])
+                        choice = random.choice(['rotate', 'shift', 'zoom'])
                         
-                        if choice in ['rotate', 'both']:
-                            angle = random.uniform(-10, 10)
+                        if choice == 'rotate':
+                            angle = random.uniform(-8, 8)
                             v = v.rotate(angle, fillcolor=255)
-                        
-                        if choice in ['shift', 'both']:
-                            tx = random.randint(-2, 2)
-                            ty = random.randint(-2, 2)
+                        elif choice == 'shift':
+                            tx, ty = random.randint(-1, 1), random.randint(-1, 1)
                             shifted = Image.new('L', IMG_SIZE, 255)
                             shifted.paste(v, (tx, ty))
                             v = shifted
-
-                        if choice == 'zoom':
-                            zoom_factor = random.uniform(0.9, 1.1)
+                        elif choice == 'zoom':
+                            zoom_factor = random.uniform(0.95, 1.05)
                             w, h = v.size
                             new_w, new_h = int(w * zoom_factor), int(h * zoom_factor)
                             v_resized = v.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -105,37 +139,43 @@ def load_dataset():
                         variants.append(v)
                     
                     for v in variants:
-                        img_array = np.array(v).astype('float32') / 255.0
-                        img_array = 1.0 - img_array
+                        # ใช้ float16 หรือเก็บเป็น uint8 ก่อนถ้าจำเป็น แต่ในที่นี้ลดจำนวนรูปน่าจะพอ
+                        img_array = np.array(v, dtype='uint8')
                         X.append(img_array.flatten())
                         y.append(label)
                         
                 except Exception as e:
                     print(f"Error: {img_path} - {e}")
                     
-    return np.array(X), np.array(y)
+    # แปลงเป็น float32 ตอนจะเทรนเท่านั้น
+    return np.array(X, dtype='uint8'), np.array(y)
 
 # ---------------------------------------------------------
 # 3. การเทรน (Training)
 # ---------------------------------------------------------
 
 def train():
-    X, y = load_dataset()
-    if len(X) == 0: return print("Error: No data")
+    X_raw, y = load_dataset()
+    if len(X_raw) == 0: return print("Error: No data")
+
+    # แปลงข้อมูลเป็น Normalize float32 เฉพาะตอนใช้งาน
+    X = X_raw.astype('float32') / 255.0
+    X = 1.0 - X
+    del X_raw # คืนค่า Memory ทันที
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # 2. การสร้างโมเดล (V6: ExtraTrees 200 ต้น เพื่อความแม่นยำรายคลาส)
+    # V7: ลด n_estimators เหลือ 100 เพื่อประหยัด RAM และลดขนาดไฟล์โมเดล
     model = ExtraTreesClassifier(
-        n_estimators=200, 
-        max_depth=40,
+        n_estimators=100, 
+        max_depth=30,
         min_samples_leaf=1,
         class_weight='balanced',
         random_state=42,
         n_jobs=-1
     )
     
-    print("--- กำลังเทรนโมเดล V6... ---")
+    print(f"--- กำลังเทรนโมเดล V7 (Dataset Size: {len(X)}) ---")
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
