@@ -72,8 +72,9 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        # เพิ่มขอบ (Padding) เป็น 14 พิกเซล
-        size = max(w, h) + 14
+        # เพิ่มขอบ (Padding) - ปรับลดจาก 14 เป็น 8 เพื่อให้ตัวเลขใหญ่ขึ้น
+        padding = 8
+        size = max(w, h) + padding
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         img = new_img.resize((28, 28), Image.Resampling.LANCZOS)

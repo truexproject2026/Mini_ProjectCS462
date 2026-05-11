@@ -58,9 +58,21 @@ export default function CollectData() {
     }
   };
 
-  const handleDownload = () => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-    window.open(`${backendUrl}/download-dataset`, '_blank');
+  const handleDownload = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/download-all');
+      const result = await res.json();
+      if (result.status === 'success' && result.url) {
+        window.open(result.url, '_blank');
+      } else {
+        alert("ไม่สามารถสร้างไฟล์ดาวน์โหลดได้ในขณะนี้: " + (result.message || ""));
+      }
+    } catch (error) {
+      alert("เกิดข้อผิดพลาดในการดาวน์โหลด");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -198,22 +210,6 @@ export default function CollectData() {
             >
               <Download size={18} style={{ marginRight: '8px' }} />
               Download Latest Dataset
-            </button>
-
-            <button 
-              onClick={() => window.open('https://drive.google.com/drive/folders/1xJnM2Jw9gkFWNW5ziXPfY8kxUypV-ECo?usp=sharing', '_blank')}
-              className="predict-btn"
-              style={{ 
-                width: '100%',
-                background: '#ffffff', 
-                color: '#1e40af',
-                border: '1px solid #dbeafe',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                marginTop: '10px'
-              }}
-            >
-              <ExternalLink size={18} style={{ marginRight: '8px' }} />
-              Google Drive Dataset
             </button>
           </div>
 

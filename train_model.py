@@ -73,8 +73,9 @@ def preprocess_image(image):
         digit = img.crop((x_min, y_min, x_max + 1, y_max + 1))
         
         w, h = digit.size
-        # เพิ่มขอบ (Padding) เป็น 14 พิกเซล เพื่อให้เส้นหนาไม่เบียดขอบ
-        size = max(w, h) + 14
+        # เพิ่มขอบ (Padding) - ปรับลดจาก 14 เป็น 8 เพื่อให้ตัวเลขใหญ่ขึ้น
+        padding = 8
+        size = max(w, h) + padding
         new_img = Image.new('L', (size, size), 255)
         new_img.paste(digit, ((size - w) // 2, (size - h) // 2))
         
@@ -97,7 +98,7 @@ def load_dataset():
     X = []
     y = []
     
-    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V7: Memory Optimized) ---")
+    print("--- กำลังอ่านและเพิ่มจำนวนข้อมูล (V8: Enhanced Class 36) ---")
     
     for label in LABELS:
         label_dir = os.path.join(DATASET_DIR, label)
@@ -110,9 +111,14 @@ def load_dataset():
                     raw_img = Image.open(img_path)
                     clean_img = preprocess_image(raw_img)
                     
-                    # V7: ลด Augmentation ลงเนื่องจากรูปจริงเพิ่มขึ้นมากแล้ว 
-                    # เพื่อป้องกันปัญหา RAM เต็มบน Render (Limit 512MB)
-                    aug_count = 5 if label in ["๓๘", "๓๙"] else 3
+                    # V8.1: ปรับ Augmentation ให้สมดุลมากขึ้น
+                    # ๓๖ มีข้อมูลเพิ่มขึ้นเป็น 285 รูปแล้ว ลดการ Augment ลงเหลือ 6 เท่า
+                    if label == "๓๖":
+                        aug_count = 6
+                    elif label in ["๓๘", "๓๙"]:
+                        aug_count = 5
+                    else:
+                        aug_count = 4
                     
                     variants = [clean_img]
                     

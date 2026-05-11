@@ -12,24 +12,24 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const label = formData.get('label') as string;
-    const imageData = formData.get('image_data') as string; // เป็น Base64 อยู่แล้ว
+    const imageData = formData.get('image_data') as string;
 
     if (!label || !imageData) {
       return NextResponse.json({ status: 'error', message: 'Missing data' }, { status: 400 });
     }
 
-    // --- ส่งรูปขึ้น Cloudinary ---
-    // วิธีนี้ง่ายมาก: ส่ง Base64 เข้าไปตรงๆ Cloudinary จะจัดการสร้างไฟล์และชื่อไฟล์ให้เอง
     try {
+      // ส่งรูปขึ้น Cloudinary โดยแยกโฟลเดอร์ตามตัวเลขไทย
       const uploadResponse = await cloudinary.uploader.upload(imageData, {
-        folder: `thai-handwriting/${label}`, // แยกโฟลเดอร์ตามตัวเลข (รองรับภาษาไทย!)
+        folder: `thai-handwriting/${label}`,
         resource_type: 'image',
+        public_id: `${label}_${Date.now()}`
       });
 
       return NextResponse.json({ 
         status: 'success', 
         message: `Saved to Cloudinary in folder: ${label}`,
-        url: uploadResponse.secure_url // ได้ URL ของรูปกลับมาด้วย
+        url: uploadResponse.secure_url
       });
 
     } catch (cloudErr: any) {
