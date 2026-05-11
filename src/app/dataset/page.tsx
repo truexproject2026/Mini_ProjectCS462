@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import DrawingCanvas from '@/components/DrawingCanvas';
 import Navbar from '@/components/Navbar';
-import { Save, Trash2, Lightbulb, Fingerprint, Database } from 'lucide-react';
+import { Save, Trash2, Lightbulb, Fingerprint, Database, Download } from 'lucide-react';
 
 export default function CollectData() {
   const [currentImage, setCurrentImage] = useState<string>("");
@@ -56,6 +56,11 @@ export default function CollectData() {
     if ((window as any).clearCanvas) {
       (window as any).clearCanvas();
     }
+  };
+
+  const handleDownload = () => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    window.open(`${backendUrl}/download-dataset`, '_blank');
   };
 
   return (
@@ -180,6 +185,20 @@ export default function CollectData() {
                 ข้อมูลของคุณจะถูกอัปโหลดไปยัง Cloudinary และใช้ในการ Re-train โมเดลในอนาคตเพื่อเพิ่มความแม่นยำ
               </p>
             </div>
+
+            <button 
+              onClick={handleDownload}
+              className="predict-btn"
+              style={{ 
+                width: '100%',
+                background: '#4f46e5', 
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
+                marginTop: '10px'
+              }}
+            >
+              <Download size={18} style={{ marginRight: '8px' }} />
+              Download Latest Dataset
+            </button>
           </div>
 
         </div>

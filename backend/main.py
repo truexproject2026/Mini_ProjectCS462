@@ -10,6 +10,9 @@ import os
 import json
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
+from fastapi.responses import FileResponse
+import shutil
+import tempfile
 
 app = FastAPI()
 
@@ -128,6 +131,24 @@ async def get_metrics():
         with open(METRICS_PATH, 'r', encoding='utf-8') as f:
             return {"status": "success", "metrics": json.load(f)}
     return {"status": "error", "message": f"ไม่พบไฟล์ที่ {METRICS_PATH}"}
+
+@app.get("/download-dataset")
+async def download_dataset():
+    dataset_dir = os.path.join(BASE_DIR, "dataset")
+    if not os.path.exists(dataset_dir):
+        raise HTTPException(status_code=404, detail="ไม่พบโฟลเดอร์ dataset")
+    
+    # สร้างไฟล์ ZIP ชั่วคราว
+    temp_zip = tempfile.mktemp()
+    try:
+        shutil.make_archive(temp_zip, 'zip', dataset_dir)
+        return FileResponse(
+            path=f"{temp_zip}.zip", 
+            filename="dataset_latest.zip",
+            media_type='application/zip'
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
