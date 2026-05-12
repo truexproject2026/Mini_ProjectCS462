@@ -4,7 +4,7 @@
 
 ## 🏗️ 1. Current Architecture (Hybrid Cloud)
 ระบบถูกแยกการทำงานออกเป็น 2 ส่วนหลักเพื่อประสิทธิภาพสูงสุด:
-- **Frontend:** [Next.js] ฝากไว้ที่ **Vercel** (`https://mini-pj-online.vercel.app/`)
+- **Frontend:** [Next.js] ฝากไว้ที่ **Vercel** (`https://cs462-327a-ramnoi-36-40.vercel.app/`)
 - **AI Backend:** [FastAPI] ฝากไว้ที่ **Render.com** (`https://mini-pj-online.onrender.com`)
 - **Image Storage:** ใช้ **Cloudinary** ในการเก็บรูปภาพ Dataset ถาวร (แยกโฟลเดอร์ ๓๖-๔๐)
 

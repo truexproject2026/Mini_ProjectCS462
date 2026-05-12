@@ -40,7 +40,7 @@
 ---
 สไลด์ที่ 4: ช่องทางการทดสอบ (Links)
 ---
-- Web Application (Demo): https://mini-pj-online.vercel.app/
+- Web Application (Demo): https://cs462-327a-ramnoi-36-40.vercel.app/
 - Source Code & Dataset (GitHub): https://github.com/truexproject2026/Mini_ProjectCS462
 - [หมายเหตุ]: ในไฟล์ Source Code (backend/main.py และ train_model.py) ได้ทำการใส่คอมเมนต์ชื่อ-รหัสสมาชิกไว้เรียบร้อยแล้ว
 
