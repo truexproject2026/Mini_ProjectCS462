@@ -1,0 +1,87 @@
+=====================================================
+โครงสร้างสไลด์พรีเซนต์ (CS462) - ฉบับสมบูรณ์ตามเกณฑ์ประเมิน
+หัวข้อ: ระบบจำแนกตัวเลขลายมือภาษาไทย ๓๖-๔๐
+กลุ่ม: RAMNOI | Section 327A
+=====================================================
+
+---
+สไลด์ที่ 1: หน้าปก (Cover Page)
+---
+- ชื่อโปรเจกต์: ระบบรู้จำลายมือภาษาไทยด้วยปัญญาประดิษฐ์ (Thai Handwriting Recognition)
+- ชื่อโปรเจกต์ (ย่อย): ระบบทำนายลายมือเขียนเลขไทย ๓๖-๔๐
+- วิชา: CS462 Data Analytics and Mining - Section 327A
+- ชื่อกลุ่ม: RAMNOI
+- สมาชิกในทีม:
+  1. นาย ชินวัตร อ่วมแก้ว (1660701283)
+  2. นาย เดชาธร หุ้มไธสง (1660702463)
+  3. นางสาวศรีรัตน์ อินทลัย (1660705185)
+  4. นางสาวนิชาภา ศรีแจ่มใส (1660706050)
+  5. นางสาวบุญพิทักษ์ โรจนประภาวสุ (1660707538)
+
+---
+สไลด์ที่ 2: บทนำ (Introduction) - [ไม่เกิน 1 หน้า]
+---
+- ระบบทำอะไรได้บ้าง:
+  - ผู้ใช้วาดตัวเลขไทย ๓๖-๔๐ บน Canvas
+  - ระบบใช้ Machine Learning วิเคราะห์และทำนายผลทันที (Real-time Prediction)
+  - รองรับการเก็บรวบรวมข้อมูลลายมือใหม่จากผู้ใช้จริงลง Cloud
+  - แก้ปัญหาความสับสนของตัวเลขที่มีลักษณะคล้ายกัน เช่น ๓๘ และ ๓๙
+- [รูปประกอบ]: แปะรูป Screenshot หน้าหลักที่มีกระดานวาดรูป
+
+---
+สไลด์ที่ 3: สมาชิกและความรับผิดชอบ (Roles & Responsibilities)
+---
+- นาย ชินวัตร อ่วมแก้ว: Frontend & UI Development (Next.js, Tailwind)
+- นาย เดชาธร หุ้มไธสง: Backend & API Development (FastAPI, Server Logic)
+- นางสาวศรีรัตน์ อินทลัย: Model Training & Tuning (ExtraTrees, Hyperparameters)
+- นางสาวนิชาภา ศรีแจ่มใส: Dataset Collection & Image Processing (Augmentation)
+- นางสาวบุญพิทักษ์ โรจนประภาวสุ: System Deployment & QC (Vercel, Render, Testing)
+
+---
+สไลด์ที่ 4: ช่องทางการทดสอบ (Links)
+---
+- Web Application (Demo): https://mini-pj-online.vercel.app/
+- Source Code & Dataset (GitHub): https://github.com/truexproject2026/Mini_ProjectCS462
+- [หมายเหตุ]: ในไฟล์ Source Code (backend/main.py และ train_model.py) ได้ทำการใส่คอมเมนต์ชื่อ-รหัสสมาชิกไว้เรียบร้อยแล้ว
+
+---
+สไลด์ที่ 5: โครงสร้างระบบ (System Architecture) - [ไม่เกิน 1 หน้า]
+---
+- Block Diagram Flow:
+  [User วาดบน Canvas] -> [Frontend (Next.js/Vercel)] -> [API Call] -> [Backend (FastAPI/Render)]
+  -> [Preprocessing] -> [ExtraTrees Model] -> [ผลทำนาย] -> [ส่งกลับ Frontend]
+- การเรียกใช้ API: ใช้ Fetch API รับ-ส่งข้อมูลในรูปแบบ JSON และ Base64 Image
+- การจัดเก็บข้อมูล: ใช้ Cloudinary API สำหรับเก็บชุดข้อมูลใหม่แบบถาวร
+
+---
+สไลด์ที่ 6: การเทรนโมเดล - ข้อมูล (Model Training: Dataset)
+---
+- ข้อมูลที่ Classify: ตัวเลขไทย ๓๖, ๓๗, ๓๘, ๓๙, ๔๐
+- แหล่งที่มา: รวบรวมลายมือจริงจากสมาชิกในทีมและผู้ใช้ทั่วไปผ่านหน้าเว็บ
+- ตัวอย่างข้อมูล (คลาสละ 1 รูป): [แปะรูปตัวอย่างเลข ๓๖, ๓๗, ๓๘, ๓๙, ๔๐ ที่ผ่าน Preprocessing แล้ว]
+
+---
+สไลด์ที่ 7: การเทรนโมเดล - อัลกอริทึม (Model Training: Algorithm)
+---
+- Algorithm: ExtraTrees Classifier (Extremely Randomized Trees)
+- กระบวนการ Feed Data:
+  [ภาพวาด] -> [Grayscale] -> [Centering/Padding] -> [Resize 28x28] -> [Flatten 784 features] -> [Normalize] -> [ExtraTrees]
+- เหตุผลที่เลือก: มีความแม่นยำสูง (High Precision) และลดปัญหา Overfitting ได้ดีกว่า Random Forest แบบปกติ
+
+---
+สไลด์ที่ 8: ผลการทดสอบประสิทธิภาพ (Evaluation)
+---
+- Metrics ที่ใช้: Accuracy, Precision, Recall, F1-Score (เพราะข้อมูลมีการ Augment ให้สมดุลกัน)
+- ผลลัพธ์ที่ดีที่สุด (V8.3):
+  - Accuracy: 96.93%
+  - F1-Score: 96.92%
+- [แปะรูป Confusion Matrix]: แสดงการทำนายที่แม่นยำในแต่ละคลาส
+- วิเคราะห์ผล: โมเดลสามารถแยกแยะเลข ๓๖-๔๐ ได้ดีเยี่ยม โดยเฉพาะเลข ๓๘ ที่เพิ่มข้อมูลจนมีความแม่นยำสูงขึ้นอย่างเห็นได้ชัด
+
+---
+สไลด์ที่ 9: บทสรุป (Conclusion)
+---
+- ระบบสามารถทำนายผลได้แม่นยำตามเกณฑ์ที่ตั้งไว้
+- โครงสร้าง Hybrid Cloud ช่วยให้ระบบเสถียรและจัดการข้อมูลได้แบบถาวร
+- พร้อมสำหรับการนำไปประยุกต์ใช้ในงานจำแนกเอกสารภาษาไทยเบื้องต้น
+=====================================================

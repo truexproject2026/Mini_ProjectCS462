@@ -1,5 +1,15 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException, UploadFile, File
+# ==========================================
+# CS462 Data Analytics and Mining - Project
+# Group: RAMNOI (Section 327A)
+# Members:
+# 1. นาย ชินวัตร อ่วมแก้ว (1660701283)
+# 2. นาย เดชาธร หุ้มไธสง (1660702463)
+# 3. นางสาวศรีรัตน์ อินทลัย (1660705185)
+# 4. นางสาวนิชาภา ศรีแจ่มใส (1660706050)
+# 5. นางสาวบุญพิทักษ์ โรจนประภาวสุ (1660707538)
+# ==========================================
 from pydantic import BaseModel
 import joblib
 import base64
