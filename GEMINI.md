@@ -27,6 +27,11 @@
 - **Bypass Vercel Limits:** ระบบส่งไฟล์ตรงจาก Browser ไปยัง Render
 - **Memory Reload:** AI Backend จะโหลดโมเดลใหม่เข้าหน่วยความจำทันที
 
+## ⚡ 6. Performance & Cold Start Fix
+- **Keep-Alive:** ใช้ GitHub Actions (`.github/workflows/keep_alive.yml`) Ping ไปที่ Backend ทุก 10 นาที เพื่อไม่ให้ Render Free Tier หลับ (Sleep)
+- **Pre-warming:** Frontend จะยิง Request ทันทีที่โหลดหน้าแรกเพื่อปลุก AI ล่วงหน้า
+- **Health Check:** เพิ่ม Endpoint `/` ใน Backend เพื่อการตอบสนองที่รวดเร็ว (Lite-weight response)
+
 ## 🛠️ 3. Environment Variables (Vercel Settings)
 ต้องตั้งค่าเหล่านี้ใน Vercel เสมอ:
 1. `BACKEND_URL`: URL ของ Render (ใช้ใน Server-side)

@@ -86,7 +86,7 @@ export default function AboutPage() {
                 background: 'linear-gradient(to right, #a5b4fc, #e879f9)', 
                 WebkitBackgroundClip: 'text', 
                 WebkitTextFillColor: 'transparent' 
-              }}>RAMNOI</span>
+              }}>RAMNOI</span> Section 327A
             </h1>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function AboutPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <i className="fa-solid fa-users" style={{ color: '#ec4899' }}></i>
-                  ทีมงาน Ramnoi
+                  Member
                 </h2>
                 <span style={{ fontSize: '10px', fontWeight: 800, color: '#cbd5e1' }}>5 MEMBERS</span>
               </div>

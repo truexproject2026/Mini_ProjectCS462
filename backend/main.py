@@ -126,6 +126,10 @@ async def upload_model(file: UploadFile = File(...), metrics_file: Optional[Uplo
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/")
+async def health_check():
+    return {"status": "online", "message": "AI Backend is ready"}
+
 @app.get("/metrics")
 async def get_metrics():
     if os.path.exists(METRICS_PATH):
