@@ -11,5 +11,5 @@ jobs:
     steps:
       - name: Ping Backend
         run: |
-          curl -s https://mini-projectcs462.onrender.com/ > /dev/null
+          curl -s https://mini-pj-online.onrender.com/ > /dev/null
           echo "Pinged AI Backend at $(date)"
