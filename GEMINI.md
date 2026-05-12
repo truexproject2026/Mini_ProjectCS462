@@ -13,7 +13,8 @@
 ### 🎯 Real-time Prediction (หน้าหลัก)
 - วาดตัวเลขบน Canvas -> Frontend ส่งรูปไปที่ Render Backend
 - AI ทำนายผลด้วยโมเดล Random Forest / ExtraTrees (`current_model.pkl`)
-- **Current Version:** V8.1 (Accuracy: 96.36%) - ปรับปรุงความทนทานต่อลายมือจริง
+- **Current Version:** V8.2 (Accuracy: 96.88%) - เพิ่มความแม่นยำด้วยข้อมูลใหม่ 1,747 รูป (Augmented เป็น 10,251 รูป)
+- ปรับปรุงการจัดการ Class Imbalance ด้วย Dynamic Augmentation (๓๘ x12, ๓๗ x7, ๓๖ x6, ๓๙ x5, ๔๐ x4)
 - ส่งผลลัพธ์พร้อมค่า Confidence กลับมาโชว์ทันที
 
 ### 📁 Persistent Data Collection (หน้า /dataset)

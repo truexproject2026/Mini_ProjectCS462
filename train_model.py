@@ -111,14 +111,17 @@ def load_dataset():
                     raw_img = Image.open(img_path)
                     clean_img = preprocess_image(raw_img)
                     
-                    # V8.1: ปรับ Augmentation ให้สมดุลมากขึ้น
-                    # ๓๖ มีข้อมูลเพิ่มขึ้นเป็น 285 รูปแล้ว ลดการ Augment ลงเหลือ 6 เท่า
-                    if label == "๓๖":
-                        aug_count = 6
-                    elif label in ["๓๘", "๓๙"]:
-                        aug_count = 5
+                    # V8.2: ปรับ Augmentation ให้สมดุลตามจำนวนข้อมูลจริงในเครื่อง
+                    if label == "๓๘":
+                        aug_count = 12  # ข้อมูลน้อยสุด (159) -> ~1900
+                    elif label == "๓๗":
+                        aug_count = 7   # ข้อมูลปานกลาง (298) -> ~2000
+                    elif label == "๓๖":
+                        aug_count = 6   # ข้อมูล (354) -> ~2100
+                    elif label == "๓๙":
+                        aug_count = 5   # ข้อมูล (397) -> ~1985
                     else:
-                        aug_count = 4
+                        aug_count = 4   # ข้อมูลเยอะสุด (537) -> ~2148
                     
                     variants = [clean_img]
                     
